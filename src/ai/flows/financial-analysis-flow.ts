@@ -4,7 +4,8 @@
  * - analyzeFinances - Function to trigger the financial analysis flow.
  */
 
-import { defineFlow, definePrompt } from '@genkit-ai/flow';
+import { defineFlow, runFlow } from '@genkit-ai/flow';
+import { definePrompt } from '@genkit-ai/ai';
 import {
   FinancialAnalysisInput,
   FinancialAnalysisOutput,
@@ -115,7 +116,7 @@ export async function analyzeFinances(
   };
 
   // Call the Genkit flow
-  return financialAnalysisFlow(promptData);
+  return runFlow(financialAnalysisFlow, promptData);
 }
 
 // Define the Genkit prompt (internal - DO NOT EXPORT)
@@ -152,20 +153,16 @@ Com base nos dados fornecidos, gere uma análise financeira detalhada no formato
     *   Sugira ações concretas e práticas ('suggestions') para o usuário. Exemplos: renegociar dívidas a pagar, focar em produtos mais rentáveis, estratégias para reduzir perdas, promoções para limpar estoque parado, melhorar controle de contas a receber.\n    *   Indique quais ações seriam mais prioritárias em 'priorities'.\n\n5.  **Análise de Produto (productAnalysis):**
     *   Para cada produto em 'productDetails', crie um objeto correspondente em 'productAnalysis'.
     *   Preencha 'productId', 'productName', 'remainingQuantity', 'lastSalePrice', 'potentialProfit', 'currentProfit' e 'totalLoss' com base nos dados de 'productDetails'.\n\n6.  **Status Geral (overallStatus):**
-    *   Classifique a saúde financeira geral como 'healthy', 'needs_attention', ou 'critical'.\n
-Seja claro, objetivo e use uma linguagem acessível para um pequeno empreendedor. Baseie TODA a análise **exclusivamente** nos dados fornecidos. Não invente informações. Se os dados forem insuficientes para alguma parte da análise, mencione isso explicitamente no texto correspondente (summary, analysis, assessment, recommendations).`,
+    *   Classifique a saúde financeira geral como 'healthy', 'needs_attention', ou 'critical'.\n\nSeja claro, objetivo e use uma linguagem acessível para um pequeno empreendedor. Baseie TODA a análise **exclusivamente** nos dados fornecidos. Não invente informações. Se os dados forem insuficientes para alguma parte da análise, mencione isso explicitamente no texto correspondente (summary, analysis, assessment, recommendations).`,
 });
 
 // Define the Genkit flow (internal - DO NOT EXPORT)
 // Use the specific Prompt Input Schema and the full Output Schema
-const financialAnalysisFlow = defineFlow< 
-    FinancialAnalysisPromptInput, // Use the type imported from the new file
-    FinancialAnalysisOutput // Use the type imported from the new file
->({
+const financialAnalysisFlow = defineFlow({
     name: 'financialAnalysisFlow',
     inputSchema: FinancialAnalysisPromptInputSchema, // Reference the specific prompt input schema
     outputSchema: FinancialAnalysisOutputSchema,     // Reference the full output schema
-}, async (input: FinancialAnalysisPromptInput) => {
+}, async (input) => {
     // Call the prompt with the prepared input data
     const { output } = await prompt(input);
 
