@@ -1,3 +1,5 @@
+
+
 /**
  * @fileOverview Provides AI-driven financial analysis and recommendations based on sales, product, and debt data.
  *
@@ -10,14 +12,12 @@ import { registry } from '../ai-instance';
 import {
   FinancialAnalysisInput,
   FinancialAnalysisOutput,
-  FinancialAnalysisInputSchema,
   FinancialAnalysisOutputSchema,
   FinancialAnalysisPromptInputSchema,
   type FinancialAnalysisPromptInput,
 } from '../../shared/types/financial-analysis'; // Import types/schemas from the new file
 import {calculateUnitCost, Product, Sale, Debt} from '../../shared/types';
 import {getCurrencyConfig} from '../../shared/config/currencies';
-import { geminiPro } from '@genkit-ai/googleai';
 import * as z from 'zod';
 
 const financialAnalysisPrompt = definePrompt(
@@ -26,7 +26,7 @@ const financialAnalysisPrompt = definePrompt(
     inputSchema: FinancialAnalysisPromptInputSchema,
     outputSchema: FinancialAnalysisOutputSchema.omit({ disclaimer: true }),
   },
-  async (input) => {
+  async (input: z.infer<typeof FinancialAnalysisPromptInputSchema>) => {
     return {
       messages: [
         {
@@ -49,10 +49,10 @@ export const financialAnalysisFlow = defineFlow(
     outputSchema: FinancialAnalysisOutputSchema,
   },
   async (input) => {
-    const llmResponse = await generate({
+    const llmResponse = await generate(registry, {
       prompt: financialAnalysisPrompt,
       input: input,
-      model: geminiPro, // This needs to be a valid model reference
+      model: 'googleai/gemini-2.0-flash', // This needs to be a valid model reference
     });
 
     const output = llmResponse.output();
