@@ -4,7 +4,7 @@
  * - analyzeFinances - Function to trigger the financial analysis flow.
  */
 
-import { defineFlow, definePrompt } from '@genkit-ai/core';
+import { defineFlow, definePrompt } from '@genkit-ai/flow';
 import {
   FinancialAnalysisInput,
   FinancialAnalysisOutput,
