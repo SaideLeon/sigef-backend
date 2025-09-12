@@ -11,8 +11,8 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@backend/*": ["./*"],
-      "@shared/*": ["../shared/*"]
+      "@backend/*": ["./src/*"],
+      "@shared/*": ["./src/shared/*"]
     }
   },
   "include": ["**/*.ts"],
