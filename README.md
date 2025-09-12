@@ -44,7 +44,7 @@ Siga as instruções abaixo para configurar e rodar o projeto em seu ambiente lo
 
 1. **Clone o repositório:**
    ```sh
-   git clone <URL_DO_REPOSITORIO>
+   https://github.com/SaideLeon/sigef-backend.git
    cd sigef-backend
    ```
 
