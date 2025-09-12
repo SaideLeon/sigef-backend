@@ -1,7 +1,7 @@
 import { prisma } from './lib/prisma';
 import type { Product, Sale, Debt, DebtStatus, User } from '@shared/types';
 import { calculateUnitCost } from '@shared/types';
-import type { PlanName } from '@prisma/client';
+import type { PlanName, User as PrismaUser } from '@prisma/client';
 
 // --- Database Connection Check ---
 export async function checkDbConnection(): Promise<boolean> {
@@ -15,7 +15,7 @@ export async function checkDbConnection(): Promise<boolean> {
 }
 
 // --- Product Actions ---
-export async function getProducts(user: User): Promise<Product[]> {
+export async function getProducts(user: PrismaUser): Promise<Product[]> {
   try {
     const products = await prisma.product.findMany({
       where: { userId: user.id },
@@ -28,7 +28,7 @@ export async function getProducts(user: User): Promise<Product[]> {
   }
 }
 
-export async function addProduct(user: User, productData: Omit<Product, 'id' | 'createdAt' | 'userId' | 'user'>): Promise<Product | null> {
+export async function addProduct(user: PrismaUser, productData: Omit<Product, 'id' | 'createdAt' | 'userId' | 'user'>): Promise<Product | null> {
   const newProductData = {
     ...productData,
     userId: user.id,
@@ -43,7 +43,7 @@ export async function addProduct(user: User, productData: Omit<Product, 'id' | '
   }
 }
 
-export async function updateProduct(user: User, product: Product): Promise<Product | null> {
+export async function updateProduct(user: PrismaUser, product: Product): Promise<Product | null> {
   try {
     const updated = await prisma.product.update({
       where: { id: product.id, userId: user.id },
@@ -56,7 +56,7 @@ export async function updateProduct(user: User, product: Product): Promise<Produ
   }
 }
 
-export async function deleteProduct(user: User, productId: string): Promise<void> {
+export async function deleteProduct(user: PrismaUser, productId: string): Promise<void> {
   try {
     await prisma.product.delete({ where: { id: productId, userId: user.id } });
   } catch (error) {
@@ -66,7 +66,7 @@ export async function deleteProduct(user: User, productId: string): Promise<void
 }
 
 // --- Sale Actions ---
-export async function getSales(user: User): Promise<Sale[]> {
+export async function getSales(user: PrismaUser): Promise<Sale[]> {
   try {
     const sales = await prisma.sale.findMany({
       where: { userId: user.id },
@@ -79,7 +79,7 @@ export async function getSales(user: User): Promise<Sale[]> {
   }
 }
 
-export async function addSale(user: User, saleData: Omit<Sale, 'id' | 'createdAt' | 'productName' | 'profit' | 'userId' | 'user'>): Promise<Sale | null> {
+export async function addSale(user: PrismaUser, saleData: Omit<Sale, 'id' | 'createdAt' | 'productName' | 'profit' | 'userId' | 'user'>): Promise<Sale | null> {
   const product = await prisma.product.findFirst({
     where: { id: saleData.productId, userId: user.id },
   });
@@ -87,7 +87,7 @@ export async function addSale(user: User, saleData: Omit<Sale, 'id' | 'createdAt
   if (!product) throw new Error("Product not found.");
   if (product.quantity < saleData.quantitySold) throw new Error("Insufficient stock.");
 
-  const { cost: unitCost } = calculateUnitCost(product as Product);
+  const { cost: unitCost } = calculateUnitCost(product);
   const profit = saleData.isLoss ? -(unitCost * saleData.quantitySold) : saleData.saleValue - (unitCost * saleData.quantitySold);
 
   const newSaleData = {
@@ -113,7 +113,7 @@ export async function addSale(user: User, saleData: Omit<Sale, 'id' | 'createdAt
   }
 }
 
-export async function deleteSale(user: User, saleId: string): Promise<void> {
+export async function deleteSale(user: PrismaUser, saleId: string): Promise<void> {
   const saleToDelete = await prisma.sale.findFirst({
     where: { id: saleId, userId: user.id },
     include: { product: true },
@@ -138,7 +138,7 @@ export async function deleteSale(user: User, saleId: string): Promise<void> {
 }
 
 // --- Debt Actions ---
-export async function getDebts(user: User): Promise<Debt[]> {
+export async function getDebts(user: PrismaUser): Promise<Debt[]> {
   try {
     const debts = await prisma.debt.findMany({
       where: { userId: user.id },
@@ -151,7 +151,7 @@ export async function getDebts(user: User): Promise<Debt[]> {
   }
 }
 
-export async function addDebt(user: User, debtData: Omit<Debt, 'id' | 'createdAt' | 'status' | 'amountPaid' | 'userId' | 'user'>): Promise<Debt | null> {
+export async function addDebt(user: PrismaUser, debtData: Omit<Debt, 'id' | 'createdAt' | 'status' | 'amountPaid' | 'userId' | 'user'>): Promise<Debt | null> {
   const newDebtData = {
     ...debtData,
     userId: user.id,
@@ -169,7 +169,7 @@ export async function addDebt(user: User, debtData: Omit<Debt, 'id' | 'createdAt
   }
 }
 
-export async function updateDebt(user: User, debtId: string, updates: Partial<Omit<Debt, 'id' | 'createdAt' | 'userId' | 'user'>>): Promise<Debt | null> {
+export async function updateDebt(user: PrismaUser, debtId: string, updates: Partial<Omit<Debt, 'id' | 'createdAt' | 'userId' | 'user'>>): Promise<Debt | null> {
   const prismaUpdates: Record<string, any> = { ...updates };
 
   if (updates.dueDate) prismaUpdates.dueDate = new Date(updates.dueDate);
@@ -187,7 +187,7 @@ export async function updateDebt(user: User, debtId: string, updates: Partial<Om
   }
 }
 
-export async function deleteDebt(user: User, debtId: string): Promise<void> {
+export async function deleteDebt(user: PrismaUser, debtId: string): Promise<void> {
   try {
     await prisma.debt.delete({ where: { id: debtId, userId: user.id } });
   } catch (error) {
@@ -196,7 +196,7 @@ export async function deleteDebt(user: User, debtId: string): Promise<void> {
   }
 }
 
-export async function getInitialData(user: User) {
+export async function getInitialData(user: PrismaUser) {
     const [products, sales, debts] = await Promise.all([
         getProducts(user),
         getSales(user),
@@ -206,7 +206,7 @@ export async function getInitialData(user: User) {
 }
 
 // --- Admin Actions ---
-export async function getAllUsersWithSubscription(user: User) {
+export async function getAllUsersWithSubscription(user: PrismaUser) {
   if ((user as any).role !== 'ADMIN') {
     throw new Error("Unauthorized: Only admins can access this resource.");
   }
@@ -250,14 +250,14 @@ export async function getAllUsersWithSubscription(user: User) {
   }
 }
 
-export async function getPlans(user: User) {
+export async function getPlans(user: PrismaUser) {
     if ((user as any).role !== 'ADMIN') {
         throw new Error("Unauthorized");
     }
     return prisma.plan.findMany();
 }
 
-export async function createPlan(user: User, planName: PlanName) {
+export async function createPlan(user: PrismaUser, planName: PlanName) {
     if ((user as any).role !== 'ADMIN') {
         throw new Error("Unauthorized");
     }
@@ -277,7 +277,7 @@ export async function createPlan(user: User, planName: PlanName) {
     });
 }
 
-export async function updateUserSubscription(admin: User, userId: string, planId: string, durationInDays: number) {
+export async function updateUserSubscription(admin: PrismaUser, userId: string, planId: string, durationInDays: number) {
     if ((admin as any).role !== 'ADMIN') {
         throw new Error("Unauthorized");
     }
@@ -305,7 +305,7 @@ export async function updateUserSubscription(admin: User, userId: string, planId
     });
 }
 
-export async function deactivateSubscription(admin: User, subscriptionId: string) {
+export async function deactivateSubscription(admin: PrismaUser, subscriptionId: string) {
     if ((admin as any).role !== 'ADMIN') {
         throw new Error("Unauthorized");
     }
