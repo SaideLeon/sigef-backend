@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Provides AI-driven financial analysis and recommendations based on sales, product, and debt data.
  *
@@ -6,7 +5,7 @@
  */
 
 import { defineFlow, runFlow } from '@genkit-ai/flow';
-import { definePrompt } from '@genkit-ai/ai';
+import { definePrompt, generate } from '@genkit-ai/ai';
 import { registry } from '../ai-instance';
 import {
   FinancialAnalysisInput,
@@ -18,7 +17,55 @@ import {
 } from '../../shared/types/financial-analysis'; // Import types/schemas from the new file
 import {calculateUnitCost, Product, Sale, Debt} from '../../shared/types';
 import {getCurrencyConfig} from '../../shared/config/currencies';
+import { geminiPro } from '@genkit-ai/googleai';
+import * as z from 'zod';
 
+const financialAnalysisPrompt = definePrompt(
+  {
+    name: 'financialAnalysisPrompt',
+    inputSchema: FinancialAnalysisPromptInputSchema,
+    outputSchema: FinancialAnalysisOutputSchema.omit({ disclaimer: true }),
+  },
+  async (input) => {
+    return {
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              text: `Você é um consultor financeiro especialista em pequenos negócios. Analise os dados financeiros fornecidos.\n\nDados Fornecidos:\n- Data Atual: ${input.currentDate}\n- Moeda: ${input.currencyCode} (Símbolo: ${input.currencySymbol})\n- Produtos (Estoque Atual): ${JSON.stringify(input.products)}\n- Transações (Vendas e Perdas): ${JSON.stringify(input.sales)}\n- Dívidas (A Receber e A Pagar): ${JSON.stringify(input.debts)}\n- Cálculos Prévios (Aproximados): ${JSON.stringify(input.calculated)}\n- Detalhes do Produto: ${JSON.stringify(input.productDetails)}\n\nSua Tarefa:\nCom base nos dados fornecidos, gere uma análise financeira detalhada no formato JSON especificado. Siga estritamente a estrutura de saída definida (omitindo o campo 'disclaimer').\n\n1.  **Resumo Patrimonial (balanceSheetSummary):**\n    *   Use os valores pré-calculados para 'approxAssets', 'approxLiabilities', 'approxNetWorth' e 'totalLoss'.\n    *   Escreva um 'summary' breve da situação, indicando se o patrimônio é positivo ou negativo e o que isso significa de forma simples.\n\n2.  **Análise de Dívidas (debtAnalysis):**\n    *   Use os valores pré-calculados 'totalReceivablesPending' e 'totalPayablesPending'.\n    *   Analise a proporção entre contas a receber e a pagar no campo 'analysis'. Há risco de fluxo de caixa? Comente sobre a saúde das dívidas.\n    *   Considere a 'currentDate' para identificar dívidas vencidas e o risco associado.\n\n3.  **Avaliação de Riscos (riskAssessment):**\n    *   Identifique os principais riscos ('identifiedRisks') com base nos dados. Exemplos: alto volume de perdas em produtos específicos, lucro baixo ou negativo, dívidas a pagar muito altas comparadas às a receber, estoque parado (produtos sem vendas recentes - inferir se possível), dependência de poucos produtos rentáveis.\n    *   Forneça uma 'assessment' geral (ex: baixo, moderado, alto risco).\n\n4.  **Recomendações (recommendations):**\n    *   Sugira ações concretas e práticas ('suggestions') para o usuário. Exemplos: renegociar dívidas a pagar, focar em produtos mais rentáveis, estratégias para reduzir perdas, promoções para limpar estoque parado, melhorar controle de contas a receber.\n    *   Indique quais ações seriam mais prioritárias em 'priorities'.\n\n5.  **Análise de Produto (productAnalysis):**\n    *   Para cada produto em 'productDetails', crie um objeto correspondente em 'productAnalysis'.\n    *   Preencha 'productId', 'productName', 'remainingQuantity', 'lastSalePrice', 'potentialProfit', 'currentProfit' e 'totalLoss' com base nos dados de 'productDetails'.\n\n6.  **Status Geral (overallStatus):**\n    *   Classifique a saúde financeira geral como 'healthy', 'needs_attention', ou 'critical'.\n\nSeja claro, objetivo e use uma linguagem acessível para um pequeno empreendedor. Baseie TODA a análise **exclusivamente** nos dados fornecidos. Não invente informações. Se os dados forem insuficientes para alguma parte da análise, mencione isso explicitamente no texto correspondente (summary, analysis, assessment, recommendations).`,
+            },
+          ],
+        },
+      ],
+    };
+  }
+);
+
+export const financialAnalysisFlow = defineFlow(
+  {
+    name: 'financialAnalysisFlow',
+    inputSchema: FinancialAnalysisPromptInputSchema,
+    outputSchema: FinancialAnalysisOutputSchema,
+  },
+  async (input) => {
+    const llmResponse = await generate({
+      prompt: financialAnalysisPrompt,
+      input: input,
+      model: geminiPro, // This needs to be a valid model reference
+    });
+
+    const output = llmResponse.output();
+    if (!output) {
+      throw new Error('AI prompt did not return the expected output.');
+    }
+    return {
+      ...output,
+      disclaimer:
+        'Esta análise é gerada por IA e baseada exclusivamente nos dados fornecidos (produtos, vendas, dívidas). É uma ferramenta de apoio e não substitui aconselhamento financeiro profissional.',
+    };
+  }
+);
 
 /**
  * Prepares data and calls the Genkit flow for financial analysis.
@@ -120,61 +167,3 @@ export async function analyzeFinances(
   // Call the Genkit flow
   return runFlow(financialAnalysisFlow, promptData);
 }
-
-// Define the Genkit prompt (internal - DO NOT EXPORT)
-const prompt = definePrompt(registry, {
-  name: 'financialAnalysisPrompt',
-  input: {
-    schema: FinancialAnalysisPromptInputSchema, // Use the specific prompt input schema
-  },
-  output: {
-     // Define the expected output structure for the prompt (excluding the disclaimer)
-    schema: FinancialAnalysisOutputSchema.omit({disclaimer: true}),
-  },
-  prompt: `Você é um consultor financeiro especialista em pequenos negócios. Analise os dados financeiros fornecidos.\n\nDados Fornecidos:\n- Data Atual: {{{currentDate}}}
-- Moeda: {{{currencyCode}}} (Símbolo: {{{currencySymbol}}})
-- Produtos (Estoque Atual): {{json products}}
-- Transações (Vendas e Perdas): {{json sales}}
-- Dívidas (A Receber e A Pagar): {{json debts}}
-- Cálculos Prévios (Aproximados): {{json calculated}}
-  - approxAssets: Valor estimado dos ativos (estoque atual + contas a receber).
-  - approxLiabilities: Total de dívidas a pagar pendentes.
-  - approxNetWorth: Patrimônio líquido estimado (Ativos - Passivos).
-  - totalReceivablesPending: Total de dívidas a receber pendentes.
-  - totalPayablesPending: Total de dívidas a pagar pendentes (igual a approxLiabilities).
-  - totalLoss: Valor total de perdas.
-- Detalhes do Produto: {{json productDetails}}
-
-Sua Tarefa:
-Com base nos dados fornecidos, gere uma análise financeira detalhada no formato JSON especificado. Siga estritamente a estrutura de saída definida (omitindo o campo 'disclaimer').\n\n1.  **Resumo Patrimonial (balanceSheetSummary):**
-    *   Use os valores pré-calculados para 'approxAssets', 'approxLiabilities', 'approxNetWorth' e 'totalLoss'.
-    *   Escreva um 'summary' breve da situação, indicando se o patrimônio é positivo ou negativo e o que isso significa de forma simples.\n\n2.  **Análise de Dívidas (debtAnalysis):**
-    *   Use os valores pré-calculados 'totalReceivablesPending' e 'totalPayablesPending'.
-    *   Analise a proporção entre contas a receber e a pagar no campo 'analysis'. Há risco de fluxo de caixa? Comente sobre a saúde das dívidas.\n    *   Considere a 'currentDate' para identificar dívidas vencidas e o risco associado.\n\n3.  **Avaliação de Riscos (riskAssessment):**
-    *   Identifique os principais riscos ('identifiedRisks') com base nos dados. Exemplos: alto volume de perdas em produtos específicos, lucro baixo ou negativo, dívidas a pagar muito altas comparadas às a receber, estoque parado (produtos sem vendas recentes - inferir se possível), dependência de poucos produtos rentáveis.\n    *   Forneça uma 'assessment' geral (ex: baixo, moderado, alto risco).\n\n4.  **Recomendações (recommendations):**
-    *   Sugira ações concretas e práticas ('suggestions') para o usuário. Exemplos: renegociar dívidas a pagar, focar em produtos mais rentáveis, estratégias para reduzir perdas, promoções para limpar estoque parado, melhorar controle de contas a receber.\n    *   Indique quais ações seriam mais prioritárias em 'priorities'.\n\n5.  **Análise de Produto (productAnalysis):**
-    *   Para cada produto em 'productDetails', crie um objeto correspondente em 'productAnalysis'.
-    *   Preencha 'productId', 'productName', 'remainingQuantity', 'lastSalePrice', 'potentialProfit', 'currentProfit' e 'totalLoss' com base nos dados de 'productDetails'.\n\n6.  **Status Geral (overallStatus):**
-    *   Classifique a saúde financeira geral como 'healthy', 'needs_attention', ou 'critical'.\n\nSeja claro, objetivo e use uma linguagem acessível para um pequeno empreendedor. Baseie TODA a análise **exclusivamente** nos dados fornecidos. Não invente informações. Se os dados forem insuficientes para alguma parte da análise, mencione isso explicitamente no texto correspondente (summary, analysis, assessment, recommendations).`,
-});
-
-// Define the Genkit flow (internal - DO NOT EXPORT)
-// Use the specific Prompt Input Schema and the full Output Schema
-const financialAnalysisFlow = defineFlow(registry, {
-    name: 'financialAnalysisFlow',
-    inputSchema: FinancialAnalysisPromptInputSchema, // Reference the specific prompt input schema
-    outputSchema: FinancialAnalysisOutputSchema,     // Reference the full output schema
-}, async (input) => {
-    // Call the prompt with the prepared input data
-    const { output } = await prompt(input);
-
-    // Combine the AI output with the standard disclaimer
-    // Ensure output is not null before spreading
-    if (!output) {
-        throw new Error("AI prompt did not return the expected output.");
-    }
-    return {
-        ...output, // Use non-null assertion as output is expected based on schema
-        disclaimer: 'Esta análise é gerada por IA e baseada exclusivamente nos dados fornecidos (produtos, vendas, dívidas). É uma ferramenta de apoio e não substitui aconselhamento financeiro profissional.',
-    };
-});
