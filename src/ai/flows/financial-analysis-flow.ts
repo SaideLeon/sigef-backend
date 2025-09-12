@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Provides AI-driven financial analysis and recommendations based on sales, product, and debt data.
  *
@@ -6,6 +7,7 @@
 
 import { defineFlow, runFlow } from '@genkit-ai/flow';
 import { definePrompt } from '@genkit-ai/ai';
+import { registry } from '../ai-instance';
 import {
   FinancialAnalysisInput,
   FinancialAnalysisOutput,
@@ -120,7 +122,7 @@ export async function analyzeFinances(
 }
 
 // Define the Genkit prompt (internal - DO NOT EXPORT)
-const prompt = definePrompt({
+const prompt = definePrompt(registry, {
   name: 'financialAnalysisPrompt',
   input: {
     schema: FinancialAnalysisPromptInputSchema, // Use the specific prompt input schema
@@ -158,7 +160,7 @@ Com base nos dados fornecidos, gere uma análise financeira detalhada no formato
 
 // Define the Genkit flow (internal - DO NOT EXPORT)
 // Use the specific Prompt Input Schema and the full Output Schema
-const financialAnalysisFlow = defineFlow({
+const financialAnalysisFlow = defineFlow(registry, {
     name: 'financialAnalysisFlow',
     inputSchema: FinancialAnalysisPromptInputSchema, // Reference the specific prompt input schema
     outputSchema: FinancialAnalysisOutputSchema,     // Reference the full output schema

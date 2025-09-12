@@ -1,12 +1,15 @@
-import {configureGenkit} from '@genkit-ai/core';
-import {googleAI} from '@genkit-ai/googleai';
+import { configureGenkit } from '@genkit-ai/core';
+import { googleAI } from '@genkit-ai/googleai';
+import { Registry } from '@genkit-ai/core/registry';
 
-export const ai = configureGenkit({
-  promptDir: './prompts',
+export const registry = new Registry();
+
+configureGenkit({
   plugins: [
     googleAI({
       apiKey: process.env.GOOGLE_GENAI_API_KEY,
     }),
   ],
-  model: 'googleai/gemini-2.0-flash',
+  logLevel: 'debug',
+  enableTracingAndMetrics: true,
 });
