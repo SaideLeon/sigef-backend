@@ -1,0 +1,19 @@
+// src/lib/prisma.ts
+import { PrismaClient } from '@prisma/client';
+
+declare global {
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient | undefined;
+}
+
+// Prevent multiple instances of Prisma Client in development
+export const prisma = global.prisma || new PrismaClient({
+    // Optionally add logging configuration
+    // log: ['query', 'info', 'warn', 'error'],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = prisma;
+}
+
+export default prisma;

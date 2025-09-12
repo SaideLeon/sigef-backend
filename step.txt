@@ -1,0 +1,41 @@
+Pronto! A implementação da autenticação com Google está concluída.
+
+  Adicionei e configurei o Passport.js com uma estratégia para o Google, criei as rotas de autenticação e atualizei
+  seu servidor para usar tudo isso.
+
+  ⚠️ Próximos Passos e Ações Necessárias
+
+  Para que funcione, você precisa fazer o seguinte:
+
+   1. Configurar o Google Cloud:
+       * Vá para o Google Cloud Console (https://console.cloud.google.com/).
+       * Crie um novo projeto (ou use um existente).
+       * Vá para "APIs & Services" -> "Credentials".
+       * Crie um "OAuth client ID" para uma "Web application".
+       * Em "Authorized redirect URIs", adicione a URL de callback. Para desenvolvimento local, será:
+         http://localhost:3001/api/auth/google/callback.
+
+   2. Configurar Variáveis de Ambiente:
+       * O Google irá fornecer um Client ID e um Client Secret.
+       * Adicione as seguintes variáveis ao seu arquivo .env (ou sistema de configuração):
+
+   1     GOOGLE_CLIENT_ID="SEU_CLIENT_ID_DO_GOOGLE"
+   2     GOOGLE_CLIENT_SECRET="SEU_CLIENT_SECRET_DO_GOOGLE"
+   3 
+   4     # URL de callback configurada no Google Cloud
+   5     GOOGLE_CALLBACK_URL="http://localhost:3001/api/auth/google/callback"
+   6 
+   7     # URL do seu frontend para onde o usuário será redirecionado após o login
+   8     CLIENT_URL="http://localhost:3000"
+
+  Como o fluxo funciona agora:
+
+   1. No seu frontend, crie um link ou botão que aponte para http://localhost:3001/api/auth/google.
+   2. O usuário será redirecionado para a tela de login do Google.
+   3. Após a autorização, o Google o redirecionará de volta para o seu backend.
+   4. O backend irá gerar um JWT e o enviará para o seu frontend no endereço
+      CLIENT_URL/auth/callback?token=SEU_TOKEN_JWT.
+   5. Seu frontend deve capturar este token da URL e armazená-lo (em localStorage, por exemplo) para usar nas
+      chamadas de API subsequentes, da mesma forma que já faz hoje.
+
+  Se tiver mais alguma dúvida, pode perguntar

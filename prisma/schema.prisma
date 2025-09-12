@@ -1,0 +1,152 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING") // used for migrations
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                       String         @id @default(cuid())
+  name                     String?
+  email                    String?        @unique
+  password                 String?
+  emailVerified            DateTime?
+  image                    String?
+  role                     Role           @default(USER)
+  accounts                 Account[]
+  sessions                 Session[]
+  products                 Product[]
+  sales                    Sale[]
+  debts                    Debt[]
+  subscription             Subscription?
+  activatedSubscriptions Subscription[] @relation("AdminSubscriptions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Product {
+  id               String   @id @default(cuid()) // Use cuid() or uuid()
+  name             String
+  acquisitionValue Float    @map("acquisition_value")
+  quantity         Int
+  initialQuantity  Int?     @map("initial_quantity") // Optional initial quantity
+  createdAt        DateTime @default(now()) @map("created_at")
+  sales            Sale[] // Relation to Sales
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+model Sale {
+  id           String   @id @default(cuid())
+  productId    String   @map("product_id")
+  productName  String   @map("product_name") // Denormalized name
+  quantitySold Int      @map("quantity_sold")
+  saleValue    Float    @map("sale_value")
+  isLoss       Boolean  @default(false) @map("is_loss")
+  lossReason   String?  @map("loss_reason")
+  profit       Float
+  createdAt    DateTime @default(now()) @map("created_at")
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade) // Define relation with onDelete cascade
+  debts        Debt[] // Relation to Debts generated from this sale
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Debt {
+  id            String    @id @default(cuid())
+  type          DebtType // Enum defined below
+  description   String
+  amount        Float
+  amountPaid    Float     @default(0) @map("amount_paid")
+  dueDate       DateTime? @map("due_date")
+  status        DebtStatus @default(PENDING) // Enum defined below
+  contactName   String?   @map("contact_name")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  paidAt        DateTime? @map("paid_at")
+  relatedSaleId String?   @map("related_sale_id")
+  sale          Sale?     @relation(fields: [relatedSaleId], references: [id], onDelete: SetNull) // Optional relation, set null on sale delete
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+}
+
+model Plan {
+  id            String         @id @default(cuid())
+  name          PlanName       @unique
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  planId        String
+  plan          Plan     @relation(fields: [planId], references: [id])
+  startDate     DateTime
+  endDate       DateTime
+  isActive      Boolean  @default(true)
+  activatedById String
+  activatedBy   User     @relation("AdminSubscriptions", fields: [activatedById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PlanName {
+  GRATUITO
+  PROFISSIONAL
+  EMPRESARIAL
+}
+
+enum DebtType {
+  receivable
+  payable
+}
+
+enum DebtStatus {
+  PENDING
+  PAID
+  PARTIALLY_PAID
+}
