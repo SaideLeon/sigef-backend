@@ -10,7 +10,58 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 // This should be a URL to your frontend, which will receive the token
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000'; 
 
+/**
+ * @swagger
+ * tags:
+ *   name: Authentication
+ *   description: User authentication and registration
+ */
+
 // --- Native Authentication ---
+
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT token for the new user
+ *       400:
+ *         description: Missing required fields
+ *       409:
+ *         description: User with this email already exists
+ *       500:
+ *         description: Internal server error
+ */
 
 router.post('/auth/register', async (req: Request, res: Response) => {
     const { name, email, password } = req.body;
@@ -44,6 +95,46 @@ router.post('/auth/register', async (req: Request, res: Response) => {
     }
 });
 
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Log in a user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       200:
+ *         description: User logged in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT token for the user session
+ *       400:
+ *         description: Missing required fields
+ *       401:
+ *         description: Invalid credentials or user registered with Google
+ *       500:
+ *         description: Internal server error
+ */
 router.post('/auth/login', async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
@@ -77,6 +168,17 @@ router.post('/auth/login', async (req: Request, res: Response) => {
 
 // --- Google OAuth ---
 
+/**
+ * @swagger
+ * /auth/google:
+ *   get:
+ *     summary: Initiate Google OAuth login
+ *     tags: [Authentication]
+ *     description: Redirects the user to the Google login page to start the OAuth 2.0 flow.
+ *     responses:
+ *       302:
+ *         description: Redirect to Google's authentication server.
+ */
 // Step 1: User clicks "Login with Google", frontend redirects to this endpoint
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
 

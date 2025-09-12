@@ -2,7 +2,33 @@ import { Router, Request, Response } from 'express';
 import { getAllUsersWithSubscription, getPlans, createPlan, updateUserSubscription, deactivateSubscription } from '../actions';
 import { PlanName, User } from '@prisma/client';
 
+/**
+ * @swagger
+ * tags:
+ *   name: Admin
+ *   description: Admin-only operations
+ */
+
 const router = Router();
+
+/**
+ * @swagger
+ * /admin/users:
+ *   get:
+ *     summary: Get all users with their subscription info
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of users
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (user is not an admin)
+ *       500:
+ *         description: Internal server error
+ */
 
 router.get('/admin/users', async (req: Request, res: Response) => {
     try {
@@ -16,6 +42,24 @@ router.get('/admin/users', async (req: Request, res: Response) => {
     }
 });
 
+/**
+ * @swagger
+ * /admin/plans:
+ *   get:
+ *     summary: Get all available subscription plans
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of plans
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (user is not an admin)
+ *       500:
+ *         description: Internal server error
+ */
 router.get('/admin/plans', async (req: Request, res: Response) => {
     try {
         if (!req.user) {
@@ -28,6 +72,34 @@ router.get('/admin/plans', async (req: Request, res: Response) => {
     }
 });
 
+/**
+ * @swagger
+ * /admin/plans:
+ *   post:
+ *     summary: Create a new subscription plan
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               planName:
+ *                 type: string
+ *                 enum: [GRATUITO, PROFISSIONAL, EMPRESARIAL]
+ *     responses:
+ *       200:
+ *         description: The created plan
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (user is not an admin)
+ *       500:
+ *         description: Internal server error
+ */
 router.post('/admin/plans', async (req: Request, res: Response) => {
     try {
         if (!req.user) {
@@ -41,6 +113,42 @@ router.post('/admin/plans', async (req: Request, res: Response) => {
     }
 });
 
+/**
+ * @swagger
+ * /admin/users/{userId}/subscription:
+ *   put:
+ *     summary: Create or update a user's subscription
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user id
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               planId:
+ *                 type: string
+ *               durationInDays:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: The updated subscription
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (user is not an admin)
+ *       500:
+ *         description: Internal server error
+ */
 router.put('/admin/users/:userId/subscription', async (req: Request, res: Response) => {
     try {
         if (!req.user) {
@@ -54,6 +162,31 @@ router.put('/admin/users/:userId/subscription', async (req: Request, res: Respon
     }
 });
 
+/**
+ * @swagger
+ * /admin/subscriptions/{subscriptionId}:
+ *   delete:
+ *     summary: Deactivate a user's subscription
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: subscriptionId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The subscription id
+ *     responses:
+ *       204:
+ *         description: Subscription deactivated
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (user is not an admin)
+ *       500:
+ *         description: Internal server error
+ */
 router.delete('/admin/subscriptions/:subscriptionId', async (req: Request, res: Response) => {
     try {
         if (!req.user) {
