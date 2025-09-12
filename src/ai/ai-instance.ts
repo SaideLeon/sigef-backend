@@ -1,7 +1,7 @@
-import {genkit} from '@genkit-ai/core';
+import {configureGenkit} from '@genkit-ai/core';
 import {googleAI} from '@genkit-ai/googleai';
 
-export const ai = genkit({
+export const ai = configureGenkit({
   promptDir: './prompts',
   plugins: [
     googleAI({
