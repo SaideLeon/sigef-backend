@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
+import { User } from '@prisma/client';
 import { analyzeFinances } from '../ai/flows/financial-analysis-flow';
+import { getInitialData } from '../actions';
 
 /**
  * @swagger
@@ -13,32 +15,18 @@ const router = Router();
 /**
  * @swagger
  * /ai/analyze-finances:
- *   post:
- *     summary: Perform financial analysis using AI
+ *   get:
+ *     summary: Perform financial analysis for the logged-in user using AI
  *     tags: [AI]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               products:
- *                 type: array
- *                 items: 
- *                   $ref: '#/components/schemas/Product'
- *               sales:
- *                 type: array
- *                 items:
- *                   $ref: '#/components/schemas/Sale'
- *               debts:
- *                 type: array
- *                 items:
- *                   $ref: '#/components/schemas/Debt'
- *               currencyCode:
- *                 type: string
+ *     parameters:
+ *       - in: query
+ *         name: currencyCode
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: The currency code to use for the analysis (e.g., BRL, USD). Defaults to BRL.
  *     responses:
  *       200:
  *         description: The financial analysis report
@@ -48,9 +36,21 @@ const router = Router();
  *         description: Internal server error
  */
 
-router.post('/ai/analyze-finances', async (req: Request, res: Response) => {
+router.get('/ai/analyze-finances', async (req: Request, res: Response) => {
     try {
-        const result = await analyzeFinances(req.body);
+        if (!req.user) {
+            return res.sendStatus(401);
+        }
+
+        const financialData = await getInitialData(req.user as User);
+        const currencyCode = (req.query.currencyCode as string) || 'BRL';
+
+        const analysisInput = {
+            ...financialData,
+            currencyCode: currencyCode,
+        };
+
+        const result = await analyzeFinances(analysisInput);
         res.json(result);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
