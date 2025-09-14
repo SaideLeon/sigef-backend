@@ -157,7 +157,11 @@ router.post('/auth/login', async (req: Request, res: Response) => {
         }
 
         const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
-        res.json({ token });
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password: _, ...userWithoutPassword } = user;
+
+        res.json({ token, user: userWithoutPassword });
 
     } catch (error) {
         console.error("Login error:", error);
