@@ -17,7 +17,14 @@ const app: Express = express();
 const port = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 
-app.use(cors());
+const corsOptions = {
+    origin: ['http://localhost:3080', 'http://localhost:3001', 'https://sigef.cognick.qzz.io'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(passport.initialize());
