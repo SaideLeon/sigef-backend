@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Product, Sale, Debt } from './types';
+import type { Product, Sale, Debt } from '../types';
 
 // For now, we will use z.any() for base models to avoid recreating all schemas.
 // A full implementation would define schemas for Product, Sale, and Debt.

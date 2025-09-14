@@ -1,15 +1,17 @@
-import { configureGenkit } from '@genkit-ai/core';
-import { googleAI } from '@genkit-ai/googleai';
-import { Registry } from '@genkit-ai/core/registry';
+// src/ai/ai-instance.ts
 
-export const registry = new Registry();
+import { googleAI } from "@genkit-ai/google-genai";
+import { genkit } from "genkit";
 
-configureGenkit({
-  plugins: [
-    googleAI({
-      apiKey: process.env.GOOGLE_GENAI_API_KEY,
-    }),
-  ],
-  logLevel: 'debug',
-  enableTracingAndMetrics: true,
+/**
+ * Instância principal do Genkit configurada com Google AI (Gemini).
+ * 
+ * Se quiser adicionar outros provedores (OpenAI, Anthropic, etc.),
+ * basta colocar no array de plugins.
+ */
+export const ai = genkit({
+  plugins: [googleAI()],
+  model: googleAI.model("gemini-2.5-flash", {
+    temperature: 0.8,
+  }),
 });
