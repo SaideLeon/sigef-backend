@@ -1,5 +1,6 @@
 import express, { Express, Request, Response } from 'express';
 import http from 'http';
+import path from 'path';
 import cors from 'cors';
 import { checkDbConnection } from './actions';
 import { authenticateJWT } from './middleware/auth';
@@ -18,10 +19,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../public')));
 app.use(passport.initialize());
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Express + TypeScript Server');
+  res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
 app.post('/api/check-db', async (req: Request, res: Response) => {
