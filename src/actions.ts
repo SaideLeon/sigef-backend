@@ -29,6 +29,24 @@ export async function getProducts(user: PrismaUser): Promise<Product[]> {
 }
 
 export async function addProduct(user: PrismaUser, productData: Omit<Product, 'id' | 'createdAt' | 'userId' | 'user'>): Promise<Product | null> {
+  const userWithSubscription = await prisma.user.findUnique({
+    where: { id: user.id },
+    include: { subscription: { include: { plan: true } } },
+  });
+
+  const subscription = userWithSubscription?.subscription;
+  let isPaidAndActive = false;
+  if (subscription && subscription.plan.name !== 'GRATUITO' && subscription.isActive && (!subscription.endDate || new Date(subscription.endDate) >= new Date())) {
+    isPaidAndActive = true;
+  }
+
+  if (!isPaidAndActive) {
+    const productCount = await prisma.product.count({ where: { userId: user.id } });
+    if (productCount >= 30) {
+      throw new Error("O limite de 30 produtos para contas gratuitas, inativas ou expiradas foi atingido. Para adicionar mais, faça um upgrade do seu plano.");
+    }
+  }
+
   const newProductData = {
     ...productData,
     userId: user.id,
