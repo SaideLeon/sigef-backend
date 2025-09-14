@@ -6,13 +6,20 @@ interface CurrencyConfig {
 
 const currencyMap: Record<string, CurrencyConfig> = {
   BRL: {
-    symbol: 'R$',
+    symbol: 'R
+,
     name: 'Brazilian Real',
     decimal_digits: 2,
   },
   USD: {
-    symbol: '$',
+    symbol: '
+,
     name: 'United States Dollar',
+    decimal_digits: 2,
+  },
+  MZN: {
+    symbol: 'MT',
+    name: 'Metical Moçambicano',
     decimal_digits: 2,
   },
 };

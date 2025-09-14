@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/server.js",
   "scripts": {
-    "start": "node dist/server.js",
+    "start": "node -r tsconfig-paths/register dist/server.js",
     "dev": "nodemon --watch './**/*.ts' --exec ts-node -r tsconfig-paths/register src/server.ts",
     "build": "tsc",
     "prisma:migrate": "prisma migrate dev",

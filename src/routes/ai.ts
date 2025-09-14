@@ -45,23 +45,25 @@ router.get('/ai/analyze-finances', async (req: Request, res: Response) => {
             return res.sendStatus(401);
         }
 
-        const userWithSubscription = await prisma.user.findUnique({
-            where: { id: (req.user as User).id },
-            include: { subscription: { include: { plan: true } } }
-        });
+        if ((req.user as User).role !== 'ADMIN') {
+            const userWithSubscription = await prisma.user.findUnique({
+                where: { id: (req.user as User).id },
+                include: { subscription: { include: { plan: true } } }
+            });
 
-        const subscription = userWithSubscription?.subscription;
-        let isPaidAndActive = false;
-        if (subscription && subscription.plan.name !== 'GRATUITO' && subscription.isActive && (!subscription.endDate || new Date(subscription.endDate) >= new Date())) {
-            isPaidAndActive = true;
-        }
+            const subscription = userWithSubscription?.subscription;
+            let isPaidAndActive = false;
+            if (subscription && subscription.plan.name !== 'GRATUITO' && subscription.isActive && (!subscription.endDate || new Date(subscription.endDate) >= new Date())) {
+                isPaidAndActive = true;
+            }
 
-        if (!isPaidAndActive) {
-            return res.status(403).json({ error: "A análise com IA é um recurso premium. Contas gratuitas, inativas ou expiradas não têm acesso. Considere fazer um upgrade do seu plano." });
+            if (!isPaidAndActive) {
+                return res.status(403).json({ error: "A análise com IA é um recurso premium. Contas gratuitas, inativas ou expiradas não têm acesso. Considere fazer um upgrade do seu plano." });
+            }
         }
 
         const financialData = await getInitialData(req.user as User);
-        const currencyCode = (req.query.currencyCode as string) || 'BRL';
+        const currencyCode = (req.query.currencyCode as string) || 'MZN';
 
         const analysisInput = {
             ...financialData,
