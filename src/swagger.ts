@@ -15,6 +15,10 @@ const options: swaggerJsdoc.Options = {
         url: `http://localhost:${process.env.PORT || 3001}/api`,
         description: 'Development server',
       },
+      {
+        url: 'https://sigef.cognick.qzz.io/api',
+        description: 'Production server',
+      },
     ],
     components: {
       securitySchemes: {
