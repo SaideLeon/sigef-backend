@@ -73,7 +73,11 @@ router.get('/ai/analyze-finances', async (req: Request, res: Response) => {
         const result = await analyzeFinances(analysisInput);
         res.json(result);
     } catch (error: any) {
-        res.status(500).json({ error: error.message });
+        if (error.message && (error.message.includes('503') || error.message.toLowerCase().includes('overloaded'))) {
+            res.status(503).json({ error: "O modelo de IA está temporariamente indisponível devido à sobrecarga. Por favor, tente novamente em alguns minutos." });
+        } else {
+            res.status(500).json({ error: error.message });
+        }
     }
 });
 
