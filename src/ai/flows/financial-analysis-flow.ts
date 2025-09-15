@@ -63,21 +63,37 @@ export const financialAnalysisFlow = ai.defineFlow(
   async (input: FinancialAnalysisPromptInput) => {
     const prompt = await financialAnalysisPrompt(input);
 
-    const { output } = await ai.generate({
-      prompt,
-      output: { schema: FinancialAnalysisOutputSchema },
-      retry: {
-        maxAttempts: 3,
-        backoff: {
-          initialDelay: 2000,
-          maxDelay: 10000,
-          multiplier: 2,
-        },
-      },
-    });
+    let output;
+    const maxAttempts = 3;
+    let initialDelay = 2000;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const generation = await ai.generate({
+          prompt,
+          output: { schema: FinancialAnalysisOutputSchema },
+        });
+        output = generation.output;
+        if (output) {
+          break; // Success, exit loop
+        }
+        throw new Error("AI prompt did not return the expected output.");
+      } catch (error: any) {
+        if (
+          (error.message.includes('503') || error.message.toLowerCase().includes('overloaded')) &&
+          attempt < maxAttempts
+        ) {
+          console.log(`Attempt ${attempt} failed due to overload. Retrying in ${initialDelay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, initialDelay));
+          initialDelay *= 2; // Exponential backoff
+        } else {
+          throw error; // Rethrow other errors or on last attempt
+        }
+      }
+    }
 
     if (!output) {
-      throw new Error("AI prompt did not return the expected output.");
+      throw new Error("AI prompt did not return the expected output after multiple retries.");
     }
 
     return {
