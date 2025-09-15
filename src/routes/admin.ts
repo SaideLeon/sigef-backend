@@ -135,10 +135,22 @@ router.post('/admin/plans', async (req: Request, res: Response) => {
  *           schema:
  *             type: object
  *             properties:
- *               planId:
- *                 type: string
- *               durationInDays:
- *                 type: integer
+ *               subscription:
+ *                 type: object
+ *                 properties:
+ *                   plan:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                   startDate:
+ *                     type: string
+ *                     format: date-time
+ *                   endDate:
+ *                     type: string
+ *                     format: date-time
+ *                   isActive:
+ *                     type: boolean
  *     responses:
  *       200:
  *         description: The updated subscription
@@ -154,8 +166,15 @@ router.put('/admin/users/:userId/subscription', async (req: Request, res: Respon
         if (!req.user) {
             return res.sendStatus(401);
         }
-        const { planId, durationInDays } = req.body;
-        const updatedSubscription = await updateUserSubscription(req.user as User, req.params.userId, planId, durationInDays);
+        const { subscription } = req.body;
+        if (!subscription) {
+            return res.status(400).json({ error: 'Request body must include a "subscription" object.' });
+        }
+        const { plan, startDate, endDate, isActive } = subscription;
+        if (!plan || !plan.id || !startDate || !endDate || typeof isActive !== 'boolean') {
+            return res.status(400).json({ error: 'Subscription object must include plan.id, startDate, endDate, and isActive (boolean).' });
+        }
+        const updatedSubscription = await updateUserSubscription(req.user as User, req.params.userId, plan.id, new Date(startDate), new Date(endDate), isActive);
         res.json(updatedSubscription);
     } catch (error: any) {
         res.status(500).json({ error: error.message });

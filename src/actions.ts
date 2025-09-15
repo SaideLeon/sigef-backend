@@ -297,14 +297,10 @@ export async function createPlan(user: PrismaUser, planName: PlanName) {
     });
 }
 
-export async function updateUserSubscription(admin: PrismaUser, userId: string, planId: string, durationInDays: number) {
+export async function updateUserSubscription(admin: PrismaUser, userId: string, planId: string, startDate: Date, endDate: Date, isActive: boolean) {
     if ((admin as any).role !== 'ADMIN') {
         throw new Error("Unauthorized");
     }
-
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(startDate.getDate() + durationInDays);
 
     return prisma.subscription.upsert({
         where: { userId },
@@ -312,7 +308,7 @@ export async function updateUserSubscription(admin: PrismaUser, userId: string, 
             planId,
             startDate,
             endDate,
-            isActive: true,
+            isActive,
             activatedById: admin.id,
         },
         create: {
@@ -320,6 +316,7 @@ export async function updateUserSubscription(admin: PrismaUser, userId: string, 
             planId,
             startDate,
             endDate,
+            isActive,
             activatedById: admin.id,
         },
     });
