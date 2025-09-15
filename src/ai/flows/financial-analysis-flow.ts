@@ -59,14 +59,6 @@ export const financialAnalysisFlow = ai.defineFlow(
     name: "financialAnalysisFlow",
     inputSchema: FinancialAnalysisPromptInputSchema,
     outputSchema: FinancialAnalysisOutputSchema,
-    retry: {
-      maxAttempts: 3,
-      backoff: {
-        initialDelay: 2000,
-        maxDelay: 10000,
-        multiplier: 2,
-      },
-    },
   },
   async (input: FinancialAnalysisPromptInput) => {
     const prompt = await financialAnalysisPrompt(input);
@@ -74,6 +66,14 @@ export const financialAnalysisFlow = ai.defineFlow(
     const { output } = await ai.generate({
       prompt,
       output: { schema: FinancialAnalysisOutputSchema },
+      retry: {
+        maxAttempts: 3,
+        backoff: {
+          initialDelay: 2000,
+          maxDelay: 10000,
+          multiplier: 2,
+        },
+      },
     });
 
     if (!output) {
