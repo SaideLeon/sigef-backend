@@ -1,3 +1,4 @@
+import { HttpError } from '../shared/errors';
 import { Router, Request, Response } from 'express';
 import { User } from '@prisma/client';
 import { analyzeFinances } from '../ai/flows/financial-analysis-flow';
@@ -73,6 +74,9 @@ router.get('/ai/analyze-finances', async (req: Request, res: Response) => {
         const result = await analyzeFinances(analysisInput);
         res.json(result);
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         if (error.message && (error.message.includes('503') || error.message.toLowerCase().includes('overloaded'))) {
             res.status(503).json({ error: "O modelo de IA está temporariamente indisponível devido à sobrecarga. Por favor, tente novamente em alguns minutos." });
         } else {

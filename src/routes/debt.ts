@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { HttpError } from '../shared/errors';
 import { getDebts, addDebt, updateDebt, deleteDebt } from '../actions';
 import { User } from '@prisma/client';
 
@@ -108,6 +109,9 @@ router.get('/debts', async (req: Request, res: Response) => {
         const debts = await getDebts(req.user as User);
         res.json(debts);
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 });
@@ -146,6 +150,9 @@ router.post('/debts', async (req: Request, res: Response) => {
         const newDebt = await addDebt(req.user as User, req.body);
         res.json(newDebt);
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 });
@@ -193,6 +200,9 @@ router.put('/debts/:id', async (req: Request, res: Response) => {
         const updatedDebt = await updateDebt(req.user as User, req.params.id, req.body);
         res.json(updatedDebt);
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 });
@@ -230,6 +240,9 @@ router.delete('/debts/:id', async (req: Request, res: Response) => {
         await deleteDebt(req.user as User, req.params.id);
         res.status(204).send();
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 });

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { HttpError } from '../shared/errors';
 import { getProducts, addProduct, updateProduct, deleteProduct } from '../actions';
 import { User } from '@prisma/client';
 
@@ -83,6 +84,9 @@ router.get('/products', async (req: Request, res: Response) => {
         const products = await getProducts(req.user as User);
         res.json(products);
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 });
@@ -121,6 +125,9 @@ router.post('/products', async (req: Request, res: Response) => {
         const newProduct = await addProduct(req.user as User, req.body);
         res.json(newProduct);
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 });
@@ -168,6 +175,9 @@ router.put('/products/:id', async (req: Request, res: Response) => {
         const updatedProduct = await updateProduct(req.user as User, req.body);
         res.json(updatedProduct);
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 });
@@ -205,6 +215,9 @@ router.delete('/products/:id', async (req: Request, res: Response) => {
         await deleteProduct(req.user as User, req.params.id);
         res.status(204).send();
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 });

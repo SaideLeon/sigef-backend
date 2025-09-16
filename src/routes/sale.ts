@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { HttpError } from '../shared/errors';
 import { getSales, addSale, deleteSale } from '../actions';
 import { User } from '@prisma/client';
 
@@ -96,6 +97,9 @@ router.get('/sales', async (req: Request, res: Response) => {
         const sales = await getSales(req.user as User);
         res.json(sales);
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 });
@@ -134,6 +138,9 @@ router.post('/sales', async (req: Request, res: Response) => {
         const newSale = await addSale(req.user as User, req.body);
         res.json(newSale);
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 });
@@ -171,6 +178,9 @@ router.delete('/sales/:id', async (req: Request, res: Response) => {
         await deleteSale(req.user as User, req.params.id);
         res.status(204).send();
     } catch (error: any) {
+        if (error instanceof HttpError) {
+            return res.status(error.statusCode).json({ error: error.message });
+        }
         res.status(500).json({ error: error.message });
     }
 });

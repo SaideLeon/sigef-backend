@@ -1,3 +1,4 @@
+import { HttpError } from './shared/errors';
 import { prisma } from './lib/prisma';
 import type { Product, Sale, Debt, DebtStatus, User } from '@shared/types';
 import { calculateUnitCost } from '@shared/types';
@@ -44,7 +45,7 @@ export async function addProduct(user: PrismaUser, productData: Omit<Product, 'i
     if (!isPaidAndActive) {
       const productCount = await prisma.product.count({ where: { userId: user.id } });
       if (productCount >= 30) {
-        throw new Error("O limite de 30 produtos para contas gratuitas, inativas ou expiradas foi atingido. Para adicionar mais, faça um upgrade do seu plano.");
+        throw new HttpError(403, "O limite de 30 produtos para contas gratuitas, inativas ou expiradas foi atingido. Para adicionar mais, faça um upgrade do seu plano.");
       }
     }
   }
@@ -104,8 +105,8 @@ export async function addSale(user: PrismaUser, saleData: Omit<Sale, 'id' | 'cre
     where: { id: saleData.productId, userId: user.id },
   });
 
-  if (!product) throw new Error("Product not found.");
-  if (product.quantity < saleData.quantitySold) throw new Error("Insufficient stock.");
+  if (!product) throw new HttpError(404, "Product not found.");
+  if (product.quantity < saleData.quantitySold) throw new HttpError(409, "Insufficient stock.");
 
   const { cost: unitCost } = calculateUnitCost(product);
   const profit = saleData.isLoss ? -(unitCost * saleData.quantitySold) : saleData.saleValue - (unitCost * saleData.quantitySold);
@@ -139,7 +140,7 @@ export async function deleteSale(user: PrismaUser, saleId: string): Promise<void
     include: { product: true },
   });
 
-  if (!saleToDelete) throw new Error("Sale not found.");
+  if (!saleToDelete) throw new HttpError(404, "Sale not found.");
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -228,7 +229,7 @@ export async function getInitialData(user: PrismaUser) {
 // --- Admin Actions ---
 export async function getAllUsersWithSubscription(user: PrismaUser) {
   if ((user as any).role !== 'ADMIN') {
-    throw new Error("Unauthorized: Only admins can access this resource.");
+    throw new HttpError(403, "Unauthorized: Only admins can access this resource.");
   }
 
   try {
@@ -272,14 +273,14 @@ export async function getAllUsersWithSubscription(user: PrismaUser) {
 
 export async function getPlans(user: PrismaUser) {
     if ((user as any).role !== 'ADMIN') {
-        throw new Error("Unauthorized");
+        throw new HttpError(403, "Unauthorized");
     }
     return prisma.plan.findMany();
 }
 
 export async function createPlan(user: PrismaUser, planName: PlanName) {
     if ((user as any).role !== 'ADMIN') {
-        throw new Error("Unauthorized");
+        throw new HttpError(403, "Unauthorized");
     }
 
     const existingPlan = await prisma.plan.findUnique({
@@ -287,7 +288,7 @@ export async function createPlan(user: PrismaUser, planName: PlanName) {
     });
 
     if (existingPlan) {
-        throw new Error(`O plano "${planName}" já existe.`);
+        throw new HttpError(409, `O plano "${planName}" já existe.`);
     }
 
     return prisma.plan.create({
@@ -299,7 +300,7 @@ export async function createPlan(user: PrismaUser, planName: PlanName) {
 
 export async function updateUserSubscription(admin: PrismaUser, userId: string, planId: string, startDate: Date, endDate: Date, isActive: boolean) {
     if ((admin as any).role !== 'ADMIN') {
-        throw new Error("Unauthorized");
+        throw new HttpError(403, "Unauthorized");
     }
 
     return prisma.subscription.upsert({
@@ -324,7 +325,7 @@ export async function updateUserSubscription(admin: PrismaUser, userId: string, 
 
 export async function deactivateSubscription(admin: PrismaUser, subscriptionId: string) {
     if ((admin as any).role !== 'ADMIN') {
-        throw new Error("Unauthorized");
+        throw new HttpError(403, "Unauthorized");
     }
 
     return prisma.subscription.update({
