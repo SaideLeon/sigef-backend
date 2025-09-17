@@ -11,6 +11,7 @@ import saleRoutes from './routes/sale';
 import debtRoutes from './routes/debt';
 import adminRoutes from './routes/admin';
 import aiRoutes from './routes/ai';
+import chatRoutes from './routes/chat';
 import { setupSwagger } from './swagger';
 
 const app: Express = express();
@@ -52,6 +53,7 @@ app.use('/api', authenticateJWT, saleRoutes);
 app.use('/api', authenticateJWT, debtRoutes);
 app.use('/api', authenticateJWT, adminRoutes);
 app.use('/api', authenticateJWT, aiRoutes);
+app.use('/api', authenticateJWT, chatRoutes);
 
 // Setup Swagger
 setupSwagger(app);
