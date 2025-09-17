@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Documentation</title>
+    <title>Login with Google</title>
     <style>
         body {
             font-family: sans-serif;
@@ -11,13 +11,41 @@
             margin: 2rem;
         }
         a {
-            color: #007bff;
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4285F4;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        #token-container {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to the Project</h1>
-    <p>This is the main entry point for the project. You can find the API documentation at the following link:</p>
-    <a href="/api-docs">API Documentation</a>
+    <h1>Login with Google</h1>
+    <p>Click the button below to login with your Google account.</p>
+    <a href="http://localhost:3001/api/auth/google">Login with Google</a>
+
+    <div id="token-container" style="display: none;">
+        <h2>Authentication Token</h2>
+        <p>Your JWT token is:</p>
+        <pre id="token"></pre>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            if (token) {
+                document.getElementById('token').innerText = token;
+                document.getElementById('token-container').style.display = 'block';
+            }
+        };
+    </script>
 </body>
 </html>

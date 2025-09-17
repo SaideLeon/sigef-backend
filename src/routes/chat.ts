@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { HttpError } from '../shared/errors';
 import { User } from '@prisma/client';
-import { mongoService } from '../services/mongodb';
 import { callSIGEFAgent } from '../ai/agent';
 
 /**
@@ -72,15 +71,12 @@ router.post('/chat', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Mensagem é obrigatória' });
     }
 
-    // Conecta ao MongoDB
-    const mongoClient = await mongoService.connect();
-    
     // Gera thread ID único
     const threadId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     console.log(`Starting chat for user ${user.email}:`, message);
     
-    const response = await callSIGEFAgent(mongoClient, message, threadId, user);
+    const response = await callSIGEFAgent(message, threadId, user);
     
     res.json({ threadId, response });
     
@@ -148,13 +144,10 @@ router.post('/chat/:threadId', async (req: Request, res: Response) => {
     if (!message) {
       return res.status(400).json({ error: 'Mensagem é obrigatória' });
     }
-
-    // Conecta ao MongoDB
-    const mongoClient = await mongoService.connect();
     
     console.log(`Continuing chat for user ${user.email}, thread ${threadId}:`, message);
     
-    const response = await callSIGEFAgent(mongoClient, message, threadId, user);
+    const response = await callSIGEFAgent(message, threadId, user);
     
     res.json({ response });
     

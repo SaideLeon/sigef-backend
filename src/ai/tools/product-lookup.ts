@@ -1,26 +1,26 @@
 import { tool } from "@langchain/core/tools"
 import { z } from "zod"
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai"
-import { MongoDBAtlasVectorSearch } from "@langchain/mongodb"
-import { Collection } from "mongodb"
 import { User } from '@prisma/client'
 import { prisma } from '../../lib/prisma'
+import { PGVectorStore } from "@langchain/community/vectorstores/pgvector"
 
-export function createProductLookupTool(collection: Collection, user: User) {
+export function createProductLookupTool(vectorStore: PGVectorStore, user: User) {
   return tool(
     async ({ query, n = 10 }) => {
       try {
         console.log(`Product lookup for user ${user.email} with query:`, query)
 
-        // Verifica se há dados no vector database
-        const totalCount = await collection.countDocuments({ userId: user.id })
+        const result = await vectorStore.similaritySearchWithScore(query, n, {
+            userId: user.id
+        })
         
-        if (totalCount === 0) {
-          console.log("Vector collection empty, using direct Prisma query...")
+        if (result.length === 0) {
+          // Fallback to direct Prisma query if no vector search results
+          console.log("Vector search returned no results, using direct Prisma query...")
           
           const directProducts = await prisma.product.findMany({
             where: {
-              userId: user.id, // Filtra por usuário
+              userId: user.id, // Filter by user
               OR: [
                 { name: { contains: query, mode: 'insensitive' } }
               ]
@@ -39,44 +39,7 @@ export function createProductLookupTool(collection: Collection, user: User) {
             searchType: "direct_prisma",
             query: query,
             count: directProducts.length,
-            message: "Recuperado do banco Prisma (vector database não populado)"
-          })
-        }
-
-        // Configuração do vector search
-        const dbConfig = {
-          collection: collection,
-          indexName: "sigef_product_vector_index",
-          textKey: "embedding_text",
-          embeddingKey: "embedding",
-          filter: { userId: user.id } // Filtra por usuário no vector search
-        }
-
-        const vectorStore = new MongoDBAtlasVectorSearch(
-          new GoogleGenerativeAIEmbeddings({
-            apiKey: process.env.GOOGLE_API_KEY,
-            model: "text-embedding-004",
-          }),
-          dbConfig
-        )
-
-        const result = await vectorStore.similaritySearchWithScore(query, n)
-        
-        if (result.length === 0) {
-          // Fallback para busca textual com filtro de usuário
-          const textResults = await collection.find({
-            userId: user.id,
-            $or: [
-              { "metadata.name": { $regex: query, $options: 'i' } },
-              { "embedding_text": { $regex: query, $options: 'i' } }
-            ]
-          }).limit(n).toArray()
-          
-          return JSON.stringify({
-            results: textResults,
-            searchType: "mongodb_text",
-            query: query,
-            count: textResults.length
+            message: "Recuperado do banco Prisma (vector search não retornou resultados)"
           })
         }
 

@@ -5,12 +5,15 @@
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",
-    "dev": "nodemon --watch './**/*.ts' --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "dev": "nodemon --watch './**/*.ts' --exec npx ts-node -r dotenv/config -r tsconfig-paths/register src/server.ts",
     "build": "tsc && tsc-alias",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
-    "chat:seed": "tsx src/ai/seed-database.ts",
-    "chat:seed-user": "tsx src/ai/seed-database.ts"
+    "chat:seed": "npx tsx -r dotenv/config src/ai/seed-database.ts",
+    "db:init": "npx ts-node -r dotenv/config src/scripts/init-postgresql.ts",
+    "chat:seed-user": "npx tsx -r dotenv/config src/ai/seed-database.ts",
+    "db:test": "npx ts-node -r dotenv/config -e \"require('./src/config/postgresql').testConnection().then((r: boolean) => process.exit(r ? 0 : 1))\""
+  
   },
   "keywords": [],
   "author": "",
@@ -21,20 +24,20 @@
     "@genkit-ai/google-genai": "^1.19.2",
     "@genkit-ai/googleai": "^1.19.2",
     "@google/generative-ai": "^0.24.1",
+    "@langchain/community": "^0.2.19",
     "@langchain/core": "^0.3.77",
     "@langchain/google-genai": "^0.2.18",
     "@langchain/langgraph": "^0.4.9",
-    "@langchain/langgraph-checkpoint-mongodb": "^0.1.1",
-    "@langchain/mongodb": "^0.1.0",
+    "@langchain/langgraph-checkpoint-postgres": "^0.1.2",
     "@prisma/client": "^6.16.1",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "genkit": "^1.19.2",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.19.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "pg": "^8.12.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "zod": "^3.25.76"
@@ -54,6 +57,7 @@
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.10",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3",
+    "dotenv": "^16.4.5"
   }
 }
