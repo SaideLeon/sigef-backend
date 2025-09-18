@@ -9,6 +9,10 @@ const pool = new Pool({
   database: process.env.POSTGRES_DB || 'sigef',
 });
 
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
+});
+
 export const pgPool = pool;
 
 export async function testConnection(): Promise<boolean> {

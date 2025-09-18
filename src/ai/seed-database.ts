@@ -15,7 +15,7 @@ export async function seedUserProducts(userId?: string): Promise<void> {
         modelName: "text-embedding-004"
       }),
       {
-        client: pgPool,
+        pool: pgPool,
         tableName: "product_embeddings",
       }
     );
