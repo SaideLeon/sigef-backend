@@ -39,3 +39,105 @@ Pronto! A implementação da autenticação com Google está concluída.
       chamadas de API subsequentes, da mesma forma que já faz hoje.
 
   Se tiver mais alguma dúvida, pode perguntar
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+sigef-backend-08723510:~/sigef-backend{main}$ npm run db:test
+
+> sigef-backend@1.0.0 db:test
+> npx ts-node -r dotenv/config -e "require('./src/config/postgresql').testConnection().then((r: boolean) => process.exit(r ? 0 : 1))"
+
+✅ PostgreSQL connected successfully!
+sigef-backend-08723510:~/sigef-backend{main}$ npm run db:init
+
+> sigef-backend@1.0.0 db:init
+> npx ts-node -r dotenv/config src/scripts/init-postgresql.ts
+
+🚀 Initializing PostgreSQL for SIGEF...
+✅ Created vector extension
+🎉 PostgreSQL initialization completed!
+sigef-backend-08723510:~/sigef-backend{main}$ npm run chat:seed
+
+> sigef-backend@1.0.0 chat:seed
+> npx tsx -r dotenv/config src/ai/seed-database.ts
+
+prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+Please manually install OpenSSL and try installing Prisma again.
+Cleared all existing embeddings
+Processing 43 products for embedding...
+✅ Processed: Cebola  for user cmfbkml9y0000l204b9i1b02n
+✅ Processed: Biscoitos  for user cmfbhesnm0000l704wmdmshyq
+✅ Processed: Bolos for user cmfbhesnm0000l704wmdmshyq
+✅ Processed: Maçã for user cmfh6xgz200002tquq0h7z3ye
+✅ Processed: Banana for user cmfh6xgz200002tquq0h7z3ye
+✅ Processed: Manga for user cmfh6xgz200002tquq0h7z3ye
+✅ Processed: Rebuçado Tatuagem  for user cmfmbcj1b001sp30kc5nnaszm
+✅ Processed: Alho for user cmfh6xgz200002tquq0h7z3ye
+✅ Processed: Batata  for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: WebZap for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Tc for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vvv for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vvv for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: ARIAVIS for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: ARIAVIS for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Gvbv for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vgj for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: G bj for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vbj v for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vgjg for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Cbcncc for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vvvcc for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Gvbn for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vvffv for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Cvh for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Fb c for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vgxc for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vxxj for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: WebZap for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Ffvb for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Cgkc for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vvxf for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vfch for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: CV. C for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Gvxgj for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Ggnc for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Vvzfb for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: G bi for user cmfl8ne5s000ao70k2j98z7w7
+✅ Processed: Bonbon au lait  for user cmfmbcj1b001sp30kc5nnaszm
+✅ Processed: YOYO COLA for user cmfmbcj1b001sp30kc5nnaszm
+✅ Processed: PIN POP for user cmfmbcj1b001sp30kc5nnaszm
+✅ Processed: BOOM NACKS for user cmfmbcj1b001sp30kc5nnaszm
+✅ Processed: Choco Eclairs for user cmfmbcj1b001sp30kc5nnaszm
+🎉 Seeding completed successfully!
+node:events:502
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: Connection terminated unexpectedly
+    at Connection.<anonymous> (/home/user/sigef-backend/node_modules/pg/lib/client.js:136:73)
+    at Object.onceWrapper (node:events:638:28)
+    at Connection.emit (node:events:524:28)
+    at Socket.<anonymous> (/home/user/sigef-backend/node_modules/pg/lib/connection.js:62:12)
+    at Socket.emit (node:events:524:28)
+    at TCP.<anonymous> (node:net:343:12)
+Emitted 'error' event on Client instance at:
+    at Client._handleErrorEvent (/home/user/sigef-backend/node_modules/pg/lib/client.js:350:10)
+    at Connection.<anonymous> (/home/user/sigef-backend/node_modules/pg/lib/client.js:154:16)
+    at Object.onceWrapper (node:events:638:28)
+    [... lines matching original stack trace ...]
+    at TCP.<anonymous> (node:net:343:12)
+
+Node.js v20.19.1
+sigef-backend-08723510:~/sigef-backend{main}$ 
