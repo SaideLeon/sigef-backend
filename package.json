@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "nodemon --watch './**/*.ts' --exec npx ts-node -r dotenv/config -r tsconfig-paths/register src/server.ts",
-    "build": "tsc && tsc-alias",
+    "build": "node --max-old-space-size=4096 ./node_modules/typescript/bin/tsc && tsc-alias",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "chat:seed": "npx tsx -r dotenv/config src/ai/seed-database.ts",
