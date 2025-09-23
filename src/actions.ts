@@ -63,14 +63,17 @@ export async function addProduct(user: PrismaUser, productData: Omit<Product, 'i
   }
 }
 
-export async function updateProduct(user: PrismaUser, product: Product): Promise<Product | null> {
+export async function updateProduct(user: PrismaUser, productId: string, updates: Partial<Product>): Promise<Product | null> {
   try {
     const updated = await prisma.product.update({
-      where: { id: product.id, userId: user.id },
-      data: { ...product },
+      where: { id: productId, userId: user.id },
+      data: updates,
     });
     return { ...updated, createdAt: updated.createdAt.toISOString() } as Product;
-  } catch (error) {
+  } catch (error: any) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+      return null; // Record to update not found
+    }
     console.error("Error updating product:", error);
     throw new Error("Failed to update product.");
   }
@@ -130,6 +133,50 @@ export async function addSale(user: PrismaUser, saleData: Omit<Sale, 'id' | 'cre
   } catch (error) {
     console.error("Error adding sale:", error);
     throw new Error("Failed to add sale.");
+  }
+}
+
+export async function updateSale(user: PrismaUser, saleId: string, updates: Partial<Sale>): Promise<Sale | null> {
+  if (updates.quantitySold || updates.productId) {
+    throw new Error("Updating quantity or product is not supported. Please delete and create a new sale.");
+  }
+
+  const sale = await prisma.sale.findFirst({
+    where: { id: saleId, userId: user.id },
+    include: { product: true }
+  });
+
+  if (!sale) {
+    return null; // Not found
+  }
+
+  const prismaUpdates: Partial<Sale> = { ...updates };
+
+  // Recalculate profit if saleValue is updated
+  if (updates.saleValue && sale.product) {
+    const { cost: unitCost } = calculateUnitCost(sale.product);
+    const newProfit = updates.saleValue - (unitCost * sale.quantitySold);
+    if (updates.isLoss) {
+        prismaUpdates.profit = -Math.abs(newProfit);
+    } else {
+        prismaUpdates.profit = newProfit;
+    }
+  }
+
+  try {
+    const updated = await prisma.sale.update({
+      where: { id: saleId },
+      data: prismaUpdates,
+    });
+    return { ...updated, createdAt: updated.createdAt.toISOString() } as Sale;
+  } catch (error: any) {
+    // This part of the code is unreachable because the sale is already found.
+    // It is kept as a safeguard.
+    if (error.code === 'P2025') {
+      return null;
+    }
+    console.error("Error updating sale:", error);
+    throw new Error("Failed to update sale.");
   }
 }
 
@@ -201,7 +248,10 @@ export async function updateDebt(user: PrismaUser, debtId: string, updates: Part
       data: prismaUpdates,
     });
     return { ...updated, createdAt: updated.createdAt.toISOString(), dueDate: updated.dueDate?.toISOString() || null, paidAt: updated.paidAt?.toISOString() || null } as Debt;
-  } catch (error) {
+  } catch (error: any) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+      return null; // Record to update not found
+    }
     console.error("Error updating debt:", error);
     throw new Error("Failed to update debt.");
   }

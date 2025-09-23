@@ -22,7 +22,7 @@ import { getCurrencyConfig } from "../../shared/config/currencies";
 // Inicializa o Genkit com Gemini
 const ai = genkit({
   plugins: [googleAI()],
-  model: googleAI.model("gemini-2.5-flash", {
+  model: googleAI.model("gemini-1.5-flash", {
     temperature: 0.8,
   }),
 });
@@ -66,14 +66,6 @@ export const financialAnalysisFlow = ai.defineFlow(
     const { output } = await ai.generate({
       prompt,
       output: { schema: FinancialAnalysisOutputSchema },
-      retry: {
-        maxAttempts: 3,
-        backoff: {
-          initialDelay: 2000,
-          maxDelay: 10000,
-          multiplier: 2,
-        },
-      },
     });
 
     if (!output) {

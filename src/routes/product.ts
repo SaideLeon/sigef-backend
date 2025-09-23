@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { getProducts, addProduct, updateProduct, deleteProduct } from '../actions';
 import { User } from '@prisma/client';
-
 /**
  * @swagger
  * tags:
@@ -119,6 +118,9 @@ router.post('/products', async (req: Request, res: Response) => {
             return res.sendStatus(401);
         }
         const newProduct = await addProduct(req.user as User, req.body);
+        if (!newProduct) {
+            return res.status(400).json({ error: "Could not create product." });
+        }
         res.json(newProduct);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
@@ -165,7 +167,10 @@ router.put('/products/:id', async (req: Request, res: Response) => {
         if (!req.user) {
             return res.sendStatus(401);
         }
-        const updatedProduct = await updateProduct(req.user as User, req.body);
+        const updatedProduct = await updateProduct(req.user as User, req.params.id, req.body);
+        if (!updatedProduct) {
+            return res.status(404).json({ error: "Product not found." });
+        }
         res.json(updatedProduct);
     } catch (error: any) {
         res.status(500).json({ error: error.message });

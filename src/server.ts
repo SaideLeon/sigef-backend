@@ -11,6 +11,7 @@ import saleRoutes from './routes/sale';
 import debtRoutes from './routes/debt';
 import adminRoutes from './routes/admin';
 import aiRoutes from './routes/ai';
+import chatRoutes from './routes/chat';
 import { setupSwagger } from './swagger';
 
 const app: Express = express();
@@ -32,6 +33,8 @@ app.use(passport.initialize());
 app.get('/', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
+ 
+
 
 app.post('/api/check-db', async (req: Request, res: Response) => {
   try {
@@ -52,14 +55,24 @@ app.use('/api', authenticateJWT, saleRoutes);
 app.use('/api', authenticateJWT, debtRoutes);
 app.use('/api', authenticateJWT, adminRoutes);
 app.use('/api', authenticateJWT, aiRoutes);
+app.use('/api', authenticateJWT, chatRoutes);
 
 // Setup Swagger
 setupSwagger(app);
 
 const server = http.createServer(app);
 
-server.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
-});
+async function startServer() {
+  try {
+    server.listen(port, () => {
+      console.log(`[server]: Server is running at http://localhost:${port}`);
+    });
+  } catch (err) {
+    console.error("Erro ao iniciar servidor:", err);
+    process.exit(1); // Correct spelling
+  }
+}
 
-export default server;
+startServer();
+
+export default server; // Single export

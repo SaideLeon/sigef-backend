@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { getSales, addSale, deleteSale } from '../actions';
+import { getSales, addSale, updateSale, deleteSale } from '../actions';
 import { User } from '@prisma/client';
-
 /**
  * @swagger
  * tags:
@@ -132,12 +131,65 @@ router.post('/sales', async (req: Request, res: Response) => {
             return res.sendStatus(401);
         }
         const newSale = await addSale(req.user as User, req.body);
+        if (!newSale) {
+            return res.status(400).json({ error: "Could not create sale." });
+        }
         res.json(newSale);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }
 });
 
+/**
+ * @swagger
+ * /sales/{id}:
+ *   put:
+ *     summary: Update a sale
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The sale id
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Sale'
+ *     responses:
+ *       200:
+ *         description: The sale was updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Sale'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: The sale was not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put('/sales/:id', async (req: Request, res: Response) => {
+    try {
+      if (!req.user) return res.sendStatus(401);
+  
+      const updatedSale = await updateSale(req.user as User, req.params.id, req.body);
+  
+      if (!updatedSale) {
+        return res.status(404).json({ error: "Sale not found." });
+      }
+
+      res.json(updatedSale);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 /**
  * @swagger
  * /sales/{id}:

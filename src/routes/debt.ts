@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { getDebts, addDebt, updateDebt, deleteDebt } from '../actions';
 import { User } from '@prisma/client';
-
 /**
  * @swagger
  * tags:
@@ -144,6 +143,9 @@ router.post('/debts', async (req: Request, res: Response) => {
             return res.sendStatus(401);
         }
         const newDebt = await addDebt(req.user as User, req.body);
+        if (!newDebt) {
+            return res.status(400).json({ error: "Could not create debt." });
+        }
         res.json(newDebt);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
@@ -191,6 +193,11 @@ router.put('/debts/:id', async (req: Request, res: Response) => {
             return res.sendStatus(401);
         }
         const updatedDebt = await updateDebt(req.user as User, req.params.id, req.body);
+
+        if (!updatedDebt) {
+            return res.status(404).json({ message: 'Debt not found' });
+        }
+
         res.json(updatedDebt);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
