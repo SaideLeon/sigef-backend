@@ -48,14 +48,4 @@ export interface UserData {
   }>;
 }
 
-export interface ConversationContext {
-  conversationId: string;
-  userId: string;
-  messages: Array<{
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: Date;
-    imageAnalysis?: string;
-  }>;
-  lastAccessed: Date;
-}
+

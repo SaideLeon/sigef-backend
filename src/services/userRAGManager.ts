@@ -1,15 +1,15 @@
-import { FaissStore } from '@langchain/community/vectorstores/faiss';
+import { MemoryVectorStore } from 'langchain/vectorstores/memory';
 import { Document } from 'langchain/document';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { prisma } from '../lib/prisma';
 import gemini from '../config/gemini';
-import { UserData, ConversationContext } from '../types';
+import { UserData } from '../types';
 
 class UserRAGManager {
-  private userVectorStores: Map<string, FaissStore> = new Map();
-  private conversationContexts: Map<string, ConversationContext> = new Map();
+  private userVectorStores: Map<string, MemoryVectorStore> = new Map();
 
   async getUserData(userId: string): Promise<UserData> {
+    console.log(`[UserRAGManager] Getting user data for userId: ${userId}`);
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -28,9 +28,11 @@ class UserRAGManager {
     });
 
     if (!user) {
+      console.error(`[UserRAGManager] User not found for userId: ${userId}`);
       throw new Error('User not found');
     }
 
+    console.log(`[UserRAGManager] Retrieved data for userId: ${userId}`, { products: user.products.length, sales: user.sales.length, debts: user.debts.length });
     return {
       id: user.id,
       products: user.products,
@@ -39,23 +41,39 @@ class UserRAGManager {
     };
   }
 
-  async createUserVectorStore(userId: string): Promise<FaissStore> {
-    try {
-      // Verificar se já existe
-      if (this.userVectorStores.has(userId)) {
-        return this.userVectorStores.get(userId)!;
-      }
+  async createUserVectorStore(userId: string): Promise<MemoryVectorStore> {
+    // 1. Check in-memory cache
+    if (this.userVectorStores.has(userId)) {
+      console.log(`[UserRAGManager] Returning in-memory cached vector store for userId: ${userId}`);
+      return this.userVectorStores.get(userId)!;
+    }
 
+    const { embeddings } = gemini.getModels();
+
+    // 2. If no cache, create a new one
+    try {
+      console.log(`[UserRAGManager] Creating new vector store for userId: ${userId}`);
       const userData = await this.getUserData(userId);
       const documents = await this.createDocumentsFromUserData(userData);
+      console.log(`[UserRAGManager] Created ${documents.length} documents for userId: ${userId}`);
 
-      const { embeddings } = gemini.getModels();
-      const vectorStore = await FaissStore.fromDocuments(documents, embeddings);
+      if (documents.length === 0) {
+        // Create an empty store if no documents, to avoid re-creating it every time
+        console.log(`[UserRAGManager] No documents for userId: ${userId}. Creating empty vector store.`);
+        const vectorStore = await MemoryVectorStore.fromDocuments([], embeddings);
+        this.userVectorStores.set(userId, vectorStore);
+        return vectorStore;
+      }
+
+      const vectorStore = await MemoryVectorStore.fromDocuments(documents, embeddings);
 
       this.userVectorStores.set(userId, vectorStore);
+      console.log(`[UserRAGManager] In-memory cached new vector store for userId: ${userId}`);
+
       return vectorStore;
     } catch (error) {
-      throw new Error(`Error creating user vector store: ${error}`);
+      console.error(`[UserRAGManager] CRITICAL: Error creating user vector store for userId: ${userId}`, error);
+      throw error; // Re-throw the error to be caught by the caller
     }
   }
 
@@ -79,6 +97,7 @@ class UserRAGManager {
         Este produto foi registrado no sistema e possui ${product.quantity} unidades disponíveis.
       `;
 
+      const chunks = await textSplitter.splitText(productText);
       chunks.forEach((chunk: string) => {
         documents.push(new Document({
           pageContent: chunk,
@@ -104,6 +123,7 @@ class UserRAGManager {
         Data da Venda: ${sale.createdAt.toLocaleDateString('pt-BR')}
       `;
 
+      const chunks = await textSplitter.splitText(saleText);
       chunks.forEach((chunk: string) => {
         documents.push(new Document({
           pageContent: chunk,
@@ -149,30 +169,10 @@ class UserRAGManager {
   }
 
   async refreshUserVectorStore(userId: string): Promise<void> {
-    // Remover store existente e recriar
+    console.log(`[UserRAGManager] Refreshing vector store for userId: ${userId}`);
     this.userVectorStores.delete(userId);
     await this.createUserVectorStore(userId);
-  }
-
-  getConversationContext(conversationId: string): ConversationContext | null {
-    return this.conversationContexts.get(conversationId) || null;
-  }
-
-  updateConversationContext(context: ConversationContext): void {
-    context.lastAccessed = new Date();
-    this.conversationContexts.set(context.conversationId, context);
-  }
-
-  createNewConversation(userId: string): string {
-    const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const context: ConversationContext = {
-      conversationId,
-      userId,
-      messages: [],
-      lastAccessed: new Date(),
-    };
-    this.conversationContexts.set(conversationId, context);
-    return conversationId;
+    console.log(`[UserRAGManager] Successfully refreshed vector store for userId: ${userId}`);
   }
 }
 

@@ -1,72 +1,83 @@
+// src/services/multimodalChatSystem.ts
 import { HumanMessage } from '@langchain/core/messages';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { RunnablePassthrough, RunnableSequence } from '@langchain/core/runnables';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import gemini from '../config/gemini';
 import UserRAGManager from './userRAGManager';
+import ConversationManager from './conversationManager';
 import { ChatRequest, ChatResponse } from '../types';
 
 class MultimodalChatSystem {
-  private ragManager = new UserRAGManager();
-  private config = gemini;
+  private ragManager: UserRAGManager;
+  private conversationManager: ConversationManager;
 
-  async processUserMessage(
+  constructor() {
+    this.ragManager = new UserRAGManager();
+    this.conversationManager = new ConversationManager();
+  }
+
+  async handleRequest(
     userId: string,
     request: ChatRequest
   ): Promise<ChatResponse> {
+    console.log(`[MultimodalChatSystem] Processing message for userId: ${userId}`, { request });
     try {
-      const { textModel, visionModel } = this.config.getModels();
+      const { textModel, visionModel } = gemini.getModels();
 
-      // Criar ou obter vector store do usuário
-      const vectorStore = await this.ragManager.createUserVectorStore(userId);
-      const retriever = vectorStore.asRetriever({ k: 5 });
-
-      // Gerenciar contexto da conversa
       const conversationId =
-        request.conversationId || this.ragManager.createNewConversation(userId);
+        request.conversationId ||
+        this.conversationManager.createNewConversation(userId);
 
-      let context = this.ragManager.getConversationContext(conversationId);
+      let context = this.conversationManager.getConversationContext(conversationId);
       if (!context) {
-        context = {
-          conversationId,
-          userId,
-          messages: [],
-          lastAccessed: new Date(),
-        };
+        // This case should ideally not happen if createNewConversation is called correctly
+        context = { id: conversationId, userId, messages: [] };
+        this.conversationManager.updateConversationContext(context);
       }
+
+      console.log(`[MultimodalChatSystem] Getting vector store for userId: ${userId}`);
+      let vectorStore;
+      try {
+          vectorStore = await this.ragManager.createUserVectorStore(userId);
+      } catch (err) {
+          console.error("[MultimodalChatSystem] Failed to create or load vector store. RAG will be disabled for this request.", err);
+          vectorStore = null;
+      }
+
+      if (!vectorStore) {
+          throw new Error("Failed to initialize user data for AI analysis due to an external service error. Please try again later.");
+      }
+
+      const retriever = vectorStore.asRetriever({ k: 45 });
+      console.log(`[MultimodalChatSystem] Retriever initialized for userId: ${userId}`);
 
       let imageAnalysis = '';
-
-      // Processar imagem se fornecida
       if (request.imageBase64) {
+        console.log(`[MultimodalChatSystem] Image provided, performing analysis.`);
         const imageMessage = new HumanMessage({
           content: [
-            {
-              type: 'text',
-              text: 'Analise esta imagem e descreva o que você vê, especialmente se relacionado a produtos, vendas ou negócios. Seja específico e detalhado.',
-            },
-            {
-              type: 'image_url',
-              image_url: `data:image/jpeg;base64,${request.imageBase64}`,
-            },
+            { type: 'text', text: 'Analise esta imagem...' },
+            { type: 'image_url', image_url: `data:image/jpeg;base64,${request.imageBase64}` },
           ],
         });
-
         const imageResult = await visionModel.invoke([imageMessage]);
         imageAnalysis = imageResult.content.toString();
+        console.log(`[MultimodalChatSystem] Image analysis result:`, imageAnalysis);
       }
 
-      // Criar prompt contextual
+      this.conversationManager.addMessage(conversationId, "user", request.message);
+
       const conversationHistory = context.messages
-        .slice(-6) // Últimas 6 mensagens
+        .slice(-6)
         .map(msg => `${msg.role === 'user' ? 'Usuário' : 'Assistente'}: ${msg.content}`)
         .join('\n');
+      console.log(`[MultimodalChatSystem] Conversation history for prompt:`, conversationHistory);
 
       const enhancedQuery = imageAnalysis
         ? `${request.message}\n\nAnálise da imagem fornecida: ${imageAnalysis}`
         : request.message;
 
-      // Criar template de prompt
       const template = `
 Você é um assistente especializado em ajudar com gestão de negócios, produtos, vendas e finanças.
 
@@ -88,11 +99,11 @@ Instruções:
 5. Seja prestativo e profissional
 6. Use valores em reais (MZN) quando aplicável
 
-Resposta:`;
+Resposta:
+`;
 
       const prompt = ChatPromptTemplate.fromTemplate(template);
 
-      // Criar chain RAG
       const ragChain = RunnableSequence.from([
         {
           context: retriever,
@@ -104,33 +115,23 @@ Resposta:`;
         new StringOutputParser(),
       ]);
 
-      // Executar consulta
+      console.log(`[MultimodalChatSystem] Invoking RAG chain with query: "${enhancedQuery}"`);
       const response = await ragChain.invoke(enhancedQuery);
+      console.log(`[MultimodalChatSystem] RAG chain response:`, response);
 
-      // Atualizar contexto da conversa
-      context.messages.push({
-        role: 'user',
-        content: request.message,
-        timestamp: new Date(),
-        imageAnalysis: imageAnalysis || undefined,
-      });
+      this.conversationManager.addMessage(conversationId, "assistant", response);
 
-      context.messages.push({
-        role: 'assistant',
-        content: response,
-        timestamp: new Date(),
-      });
-
-      this.ragManager.updateConversationContext(context);
-
-      return {
+      const chatResponse: ChatResponse = {
         response,
         conversationId,
         sources: ['Dados do usuário', ...(imageAnalysis ? ['Análise de imagem'] : [])],
         timestamp: new Date().toISOString(),
       };
-    } catch (error) {
-      throw new Error(`Error processing message: ${error}`);
+      console.log(`[MultimodalChatSystem] Final response object:`, chatResponse);
+      return chatResponse;
+    } catch (error: any) {
+      console.error(`[MultimodalChatSystem] Error processing message for userId: ${userId}`, error);
+      throw new Error(`Error processing message: ${error.message}`);
     }
   }
 }

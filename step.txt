@@ -1,41 +1,353 @@
-Pronto! A implementação da autenticação com Google está concluída.
+[
+  {
+    "id": "cmfmblo4z0020p30krf4z5y6h",
+    "name": "Choco Eclairs",
+    "acquisitionValue": 125,
+    "quantity": 117,
+    "initialQuantity": 150,
+    "createdAt": "2025-09-16T08:58:07.859Z",
+    "userId": "cmfmbcj1b001sp30kc5nnaszm"
+  },
+  {
+    "id": "cmfmj9vbu0026p30khw63s1qh",
+    "name": "PIN POP",
+    "acquisitionValue": 170,
+    "quantity": 43,
+    "initialQuantity": 48,
+    "createdAt": "2025-09-16T12:32:54.234Z",
+    "userId": "cmfmbcj1b001sp30kc5nnaszm"
+  },
+  {
+    "id": "cmfmjcmbl002ap30ku03ayt4o",
+    "name": "BOOM NACKS",
+    "acquisitionValue": 190,
+    "quantity": 29,
+    "initialQuantity": 50,
+    "createdAt": "2025-09-16T12:35:02.529Z",
+    "userId": "cmfmbcj1b001sp30kc5nnaszm"
+  },
+  {
+    "id": "cmfn2bzf20001oh0ka8bzp83g",
+    "name": "YOYO COLA",
+    "acquisitionValue": 45,
+    "quantity": 80,
+    "initialQuantity": 100,
+    "createdAt": "2025-09-16T21:26:25.550Z",
+    "userId": "cmfmbcj1b001sp30kc5nnaszm"
+  },
+  {
+    "id": "cmfn2josw0007oh0ke18pelr7",
+    "name": "Rebuçado Tatuagem ",
+    "acquisitionValue": 45,
+    "quantity": 98,
+    "initialQuantity": 100,
+    "createdAt": "2025-09-16T21:32:25.040Z",
+    "userId": "cmfmbcj1b001sp30kc5nnaszm"
+  },
+  {
+    "id": "cmfnpkrx1000doh0kauzgbt9i",
+    "name": "Bonbon au lait ",
+    "acquisitionValue": 45,
+    "quantity": 99,
+    "initialQuantity": 100,
+    "createdAt": "2025-09-17T08:17:06.901Z",
+    "userId": "cmfmbcj1b001sp30kc5nnaszm"
+  },
+  {
+    "id": "cmfpesd0g000zoh0kuykg63vf",
+    "name": "Biscoitos Arco-íris ",
+    "acquisitionValue": 850,
+    "quantity": 1160,
+    "initialQuantity": 1160,
+    "createdAt": "2025-09-18T12:50:37.408Z",
+    "userId": "cmfmbcj1b001sp30kc5nnaszm"
+  }
+]
 
-  Adicionei e configurei o Passport.js com uma estratégia para o Google, criei as rotas de autenticação e atualizei
-  seu servidor para usar tudo isso.
 
-  ⚠️ Próximos Passos e Ações Necessárias
 
-  Para que funcione, você precisa fazer o seguinte:
 
-   1. Configurar o Google Cloud:
-       * Vá para o Google Cloud Console (https://console.cloud.google.com/).
-       * Crie um novo projeto (ou use um existente).
-       * Vá para "APIs & Services" -> "Credentials".
-       * Crie um "OAuth client ID" para uma "Web application".
-       * Em "Authorized redirect URIs", adicione a URL de callback. Para desenvolvimento local, será:
-         http://localhost:3001/api/auth/google/callback.
+[POST /chat] Received request {
+  body: {
+    message: 'quantos produtos tenho em estoque?',
+    conversationId: 'conv_1629878400000_abcdef123'
+  }
+}
+[POST /chat] Authenticated user ID: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Processing message for userId: cmfmbcj1b001sp30kc5nnaszm {
+  request: {
+    message: 'quantos produtos tenho em estoque?',
+    conversationId: 'conv_1629878400000_abcdef123'
+  }
+}
+[MultimodalChatSystem] Getting vector store for userId: cmfmbcj1b001sp30kc5nnaszm
+[UserRAGManager] Creating new vector store for userId: cmfmbcj1b001sp30kc5nnaszm
+[UserRAGManager] Getting user data for userId: cmfmbcj1b001sp30kc5nnaszm
+[UserRAGManager] Retrieved data for userId: cmfmbcj1b001sp30kc5nnaszm { products: 7, sales: 32, debts: 2 }
+[UserRAGManager] Created 41 documents for userId: cmfmbcj1b001sp30kc5nnaszm
+[UserRAGManager] In-memory cached new vector store for userId: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Retriever initialized for userId: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Conversation history for prompt: 
+[MultimodalChatSystem] Invoking RAG chain with query: "quantos produtos tenho em estoque?"
+[MultimodalChatSystem] RAG chain response: Com base nos dados que você forneceu, você tem os seguintes produtos em estoque:
 
-   2. Configurar Variáveis de Ambiente:
-       * O Google irá fornecer um Client ID e um Client Secret.
-       * Adicione as seguintes variáveis ao seu arquivo .env (ou sistema de configuração):
+*   **Rebuçado Tatuagem:** 98 unidades
+*   **PIN POP:** 43 unidades
 
-   1     GOOGLE_CLIENT_ID="SEU_CLIENT_ID_DO_GOOGLE"
-   2     GOOGLE_CLIENT_SECRET="SEU_CLIENT_SECRET_DO_GOOGLE"
-   3 
-   4     # URL de callback configurada no Google Cloud
-   5     GOOGLE_CALLBACK_URL="http://localhost:3001/api/auth/google/callback"
-   6 
-   7     # URL do seu frontend para onde o usuário será redirecionado após o login
-   8     CLIENT_URL="http://localhost:3000"
+Portanto, no total, você tem **141 produtos** em estoque.
+[MultimodalChatSystem] Final response object: {
+  response: 'Com base nos dados que você forneceu, você tem os seguintes produtos em estoque:\n' +
+    '\n' +
+    '*   **Rebuçado Tatuagem:** 98 unidades\n' +
+    '*   **PIN POP:** 43 unidades\n' +
+    '\n' +
+    'Portanto, no total, você tem **141 produtos** em estoque.',
+  conversationId: 'conv_1629878400000_abcdef123',
+  sources: [ 'Dados do usuário' ],
+  timestamp: '2025-09-25T19:49:12.043Z'
+}
+[POST /chat] Sending response: {
+  response: 'Com base nos dados que você forneceu, você tem os seguintes produtos em estoque:\n' +
+    '\n' +
+    '*   **Rebuçado Tatuagem:** 98 unidades\n' +
+    '*   **PIN POP:** 43 unidades\n' +
+    '\n' +
+    'Portanto, no total, você tem **141 produtos** em estoque.',
+  conversationId: 'conv_1629878400000_abcdef123',
+  sources: [ 'Dados do usuário' ],
+  timestamp: '2025-09-25T19:49:12.043Z'
+}
+[POST /chat] Received request {
+  body: {
+    message: 'quantos quanto custa choco?',
+    conversationId: 'conv_1629878400000_abcdef123'
+  }
+}
+[POST /chat] Authenticated user ID: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Processing message for userId: cmfmbcj1b001sp30kc5nnaszm {
+  request: {
+    message: 'quantos quanto custa choco?',
+    conversationId: 'conv_1629878400000_abcdef123'
+  }
+}
+[MultimodalChatSystem] Getting vector store for userId: cmfmbcj1b001sp30kc5nnaszm
+[UserRAGManager] Returning in-memory cached vector store for userId: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Retriever initialized for userId: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Conversation history for prompt: Usuário: quantos produtos tenho em estoque?
+Assistente: Com base nos dados que você forneceu, você tem os seguintes produtos em estoque:
 
-  Como o fluxo funciona agora:
+*   **Rebuçado Tatuagem:** 98 unidades
+*   **PIN POP:** 43 unidades
 
-   1. No seu frontend, crie um link ou botão que aponte para http://localhost:3001/api/auth/google.
-   2. O usuário será redirecionado para a tela de login do Google.
-   3. Após a autorização, o Google o redirecionará de volta para o seu backend.
-   4. O backend irá gerar um JWT e o enviará para o seu frontend no endereço
-      CLIENT_URL/auth/callback?token=SEU_TOKEN_JWT.
-   5. Seu frontend deve capturar este token da URL e armazená-lo (em localStorage, por exemplo) para usar nas
-      chamadas de API subsequentes, da mesma forma que já faz hoje.
+Portanto, no total, você tem **141 produtos** em estoque.
+Usuário: quantos quanto custa choco?
+[MultimodalChatSystem] Invoking RAG chain with query: "quantos quanto custa choco?"
+[MultimodalChatSystem] RAG chain response: Com base nas informações que você forneceu, não encontrei nenhum registro de vendas ou informações de custo para um produto chamado "choco".
 
-  Se tiver mais alguma dúvida, pode perguntar
+Você gostaria de verificar se o nome do produto está escrito corretamente ou se há outra forma de chamá-lo?
+[MultimodalChatSystem] Final response object: {
+  response: 'Com base nas informações que você forneceu, não encontrei nenhum registro de vendas ou informações de custo para um produto chamado "choco".\n' +
+    '\n' +
+    'Você gostaria de verificar se o nome do produto está escrito corretamente ou se há outra forma de chamá-lo?',
+  conversationId: 'conv_1629878400000_abcdef123',
+  sources: [ 'Dados do usuário' ],
+  timestamp: '2025-09-25T19:51:05.410Z'
+}
+[POST /chat] Sending response: {
+  response: 'Com base nas informações que você forneceu, não encontrei nenhum registro de vendas ou informações de custo para um produto chamado "choco".\n' +
+    '\n' +
+    'Você gostaria de verificar se o nome do produto está escrito corretamente ou se há outra forma de chamá-lo?',
+  conversationId: 'conv_1629878400000_abcdef123',
+  sources: [ 'Dados do usuário' ],
+  timestamp: '2025-09-25T19:51:05.410Z'
+}
+[POST /chat] Received request {
+  body: {
+    message: 'quantos quanto custa Choco Eclairs?',
+    conversationId: 'conv_1629878400000_abcdef123'
+  }
+}
+[POST /chat] Authenticated user ID: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Processing message for userId: cmfmbcj1b001sp30kc5nnaszm {
+  request: {
+    message: 'quantos quanto custa Choco Eclairs?',
+    conversationId: 'conv_1629878400000_abcdef123'
+  }
+}
+[MultimodalChatSystem] Getting vector store for userId: cmfmbcj1b001sp30kc5nnaszm
+[UserRAGManager] Returning in-memory cached vector store for userId: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Retriever initialized for userId: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Conversation history for prompt: Usuário: quantos produtos tenho em estoque?
+Assistente: Com base nos dados que você forneceu, você tem os seguintes produtos em estoque:
+
+*   **Rebuçado Tatuagem:** 98 unidades
+*   **PIN POP:** 43 unidades
+
+Portanto, no total, você tem **141 produtos** em estoque.
+Usuário: quantos quanto custa choco?
+Assistente: Com base nas informações que você forneceu, não encontrei nenhum registro de vendas ou informações de custo para um produto chamado "choco".
+
+Você gostaria de verificar se o nome do produto está escrito corretamente ou se há outra forma de chamá-lo?
+Usuário: quantos quanto custa Choco Eclairs?
+[MultimodalChatSystem] Invoking RAG chain with query: "quantos quanto custa Choco Eclairs?"
+[MultimodalChatSystem] RAG chain response: Com base nos dados de vendas fornecidos, o preço de venda do "Choco Eclairs" varia entre R$ 1,00 e R$ 1,67 por unidade.
+
+Aqui estão os detalhes das vendas registradas:
+
+*   **Venda 1:** 3 unidades vendidas por R$ 3,00 (R$ 1,00 por unidade).
+*   **Venda 2:** 3 unidades vendidas por R$ 3,00 (R$ 1,00 por unidade).
+*   **Venda 3:** 2 unidades vendidas por R$ 2,00 (R$ 1,00 por unidade).
+*   **Venda 4:** 2 unidades vendidas por R$ 2,00 (R$ 1,00 por unidade).
+*   **Venda 5:** 5 unidades vendidas por R$ 5,00 (R$ 1,00 por unidade).
+
+É importante notar que o lucro por unidade também varia ligeiramente em algumas vendas, o que pode influenciar o preço de custo.
+[MultimodalChatSystem] Final response object: {
+  response: 'Com base nos dados de vendas fornecidos, o preço de venda do "Choco Eclairs" varia entre R$ 1,00 e R$ 1,67 por unidade.\n' +
+    '\n' +
+    'Aqui estão os detalhes das vendas registradas:\n' +
+    '\n' +
+    '*   **Venda 1:** 3 unidades vendidas por R$ 3,00 (R$ 1,00 por unidade).\n' +
+    '*   **Venda 2:** 3 unidades vendidas por R$ 3,00 (R$ 1,00 por unidade).\n' +
+    '*   **Venda 3:** 2 unidades vendidas por R$ 2,00 (R$ 1,00 por unidade).\n' +
+    '*   **Venda 4:** 2 unidades vendidas por R$ 2,00 (R$ 1,00 por unidade).\n' +
+    '*   **Venda 5:** 5 unidades vendidas por R$ 5,00 (R$ 1,00 por unidade).\n' +
+    '\n' +
+    'É importante notar que o lucro por unidade também varia ligeiramente em algumas vendas, o que pode influenciar o preço de custo.',
+  conversationId: 'conv_1629878400000_abcdef123',
+  sources: [ 'Dados do usuário' ],
+  timestamp: '2025-09-25T19:52:56.434Z'
+}
+[POST /chat] Sending response: {
+  response: 'Com base nos dados de vendas fornecidos, o preço de venda do "Choco Eclairs" varia entre R$ 1,00 e R$ 1,67 por unidade.\n' +
+    '\n' +
+    'Aqui estão os detalhes das vendas registradas:\n' +
+    '\n' +
+    '*   **Venda 1:** 3 unidades vendidas por R$ 3,00 (R$ 1,00 por unidade).\n' +
+    '*   **Venda 2:** 3 unidades vendidas por R$ 3,00 (R$ 1,00 por unidade).\n' +
+    '*   **Venda 3:** 2 unidades vendidas por R$ 2,00 (R$ 1,00 por unidade).\n' +
+    '*   **Venda 4:** 2 unidades vendidas por R$ 2,00 (R$ 1,00 por unidade).\n' +
+    '*   **Venda 5:** 5 unidades vendidas por R$ 5,00 (R$ 1,00 por unidade).\n' +
+    '\n' +
+    'É importante notar que o lucro por unidade também varia ligeiramente em algumas vendas, o que pode influenciar o preço de custo.',
+  conversationId: 'conv_1629878400000_abcdef123',
+  sources: [ 'Dados do usuário' ],
+  timestamp: '2025-09-25T19:52:56.434Z'
+}
+[POST /chat] Received request {
+  body: {
+    message: 'quanto sobrou no estoque os Choco Eclairs?',
+    conversationId: 'conv_1629878400000_abcdef123'
+  }
+}
+[POST /chat] Authenticated user ID: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Processing message for userId: cmfmbcj1b001sp30kc5nnaszm {
+  request: {
+    message: 'quanto sobrou no estoque os Choco Eclairs?',
+    conversationId: 'conv_1629878400000_abcdef123'
+  }
+}
+[MultimodalChatSystem] Getting vector store for userId: cmfmbcj1b001sp30kc5nnaszm
+[UserRAGManager] Returning in-memory cached vector store for userId: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Retriever initialized for userId: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Conversation history for prompt: Assistente: Com base nos dados que você forneceu, você tem os seguintes produtos em estoque:
+
+*   **Rebuçado Tatuagem:** 98 unidades
+*   **PIN POP:** 43 unidades
+
+Portanto, no total, você tem **141 produtos** em estoque.
+Usuário: quantos quanto custa choco?
+Assistente: Com base nas informações que você forneceu, não encontrei nenhum registro de vendas ou informações de custo para um produto chamado "choco".
+
+Você gostaria de verificar se o nome do produto está escrito corretamente ou se há outra forma de chamá-lo?
+Usuário: quantos quanto custa Choco Eclairs?
+Assistente: Com base nos dados de vendas fornecidos, o preço de venda do "Choco Eclairs" varia entre R$ 1,00 e R$ 1,67 por unidade.
+
+Aqui estão os detalhes das vendas registradas:
+
+*   **Venda 1:** 3 unidades vendidas por R$ 3,00 (R$ 1,00 por unidade).
+*   **Venda 2:** 3 unidades vendidas por R$ 3,00 (R$ 1,00 por unidade).
+*   **Venda 3:** 2 unidades vendidas por R$ 2,00 (R$ 1,00 por unidade).
+*   **Venda 4:** 2 unidades vendidas por R$ 2,00 (R$ 1,00 por unidade).
+*   **Venda 5:** 5 unidades vendidas por R$ 5,00 (R$ 1,00 por unidade).
+
+É importante notar que o lucro por unidade também varia ligeiramente em algumas vendas, o que pode influenciar o preço de custo.
+Usuário: quanto sobrou no estoque os Choco Eclairs?
+[MultimodalChatSystem] Invoking RAG chain with query: "quanto sobrou no estoque os Choco Eclairs?"
+[MultimodalChatSystem] RAG chain response: Com base nos dados de vendas fornecidos, foram vendidas um total de **15 unidades** de Choco Eclairs.
+
+No entanto, não tenho informações sobre a quantidade inicial de Choco Eclairs em estoque. Para calcular o que sobrou, preciso saber quantas unidades você tinha antes dessas vendas.
+[MultimodalChatSystem] Final response object: {
+  response: 'Com base nos dados de vendas fornecidos, foram vendidas um total de **15 unidades** de Choco Eclairs.\n' +
+    '\n' +
+    'No entanto, não tenho informações sobre a quantidade inicial de Choco Eclairs em estoque. Para calcular o que sobrou, preciso saber quantas unidades você tinha antes dessas vendas.',
+  conversationId: 'conv_1629878400000_abcdef123',
+  sources: [ 'Dados do usuário' ],
+  timestamp: '2025-09-25T19:54:21.989Z'
+}
+[POST /chat] Sending response: {
+  response: 'Com base nos dados de vendas fornecidos, foram vendidas um total de **15 unidades** de Choco Eclairs.\n' +
+    '\n' +
+    'No entanto, não tenho informações sobre a quantidade inicial de Choco Eclairs em estoque. Para calcular o que sobrou, preciso saber quantas unidades você tinha antes dessas vendas.',
+  conversationId: 'conv_1629878400000_abcdef123',
+  sources: [ 'Dados do usuário' ],
+  timestamp: '2025-09-25T19:54:21.989Z'
+}
+[POST /chat] Received request {
+  body: {
+    message: 'quanto produtos existem?',
+    conversationId: 'conv_1629878400000_abcdef123'
+  }
+}
+[POST /chat] Authenticated user ID: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Processing message for userId: cmfmbcj1b001sp30kc5nnaszm {
+  request: {
+    message: 'quanto produtos existem?',
+    conversationId: 'conv_1629878400000_abcdef123'
+  }
+}
+[MultimodalChatSystem] Getting vector store for userId: cmfmbcj1b001sp30kc5nnaszm
+[UserRAGManager] Returning in-memory cached vector store for userId: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Retriever initialized for userId: cmfmbcj1b001sp30kc5nnaszm
+[MultimodalChatSystem] Conversation history for prompt: Assistente: Com base nas informações que você forneceu, não encontrei nenhum registro de vendas ou informações de custo para um produto chamado "choco".
+
+Você gostaria de verificar se o nome do produto está escrito corretamente ou se há outra forma de chamá-lo?
+Usuário: quantos quanto custa Choco Eclairs?
+Assistente: Com base nos dados de vendas fornecidos, o preço de venda do "Choco Eclairs" varia entre R$ 1,00 e R$ 1,67 por unidade.
+
+Aqui estão os detalhes das vendas registradas:
+
+*   **Venda 1:** 3 unidades vendidas por R$ 3,00 (R$ 1,00 por unidade).
+*   **Venda 2:** 3 unidades vendidas por R$ 3,00 (R$ 1,00 por unidade).
+*   **Venda 3:** 2 unidades vendidas por R$ 2,00 (R$ 1,00 por unidade).
+*   **Venda 4:** 2 unidades vendidas por R$ 2,00 (R$ 1,00 por unidade).
+*   **Venda 5:** 5 unidades vendidas por R$ 5,00 (R$ 1,00 por unidade).
+
+É importante notar que o lucro por unidade também varia ligeiramente em algumas vendas, o que pode influenciar o preço de custo.
+Usuário: quanto sobrou no estoque os Choco Eclairs?
+Assistente: Com base nos dados de vendas fornecidos, foram vendidas um total de **15 unidades** de Choco Eclairs.
+
+No entanto, não tenho informações sobre a quantidade inicial de Choco Eclairs em estoque. Para calcular o que sobrou, preciso saber quantas unidades você tinha antes dessas vendas.
+Usuário: quanto produtos existem?
+[MultimodalChatSystem] Invoking RAG chain with query: "quanto produtos existem?"
+[MultimodalChatSystem] RAG chain response: Existem os seguintes produtos registrados no sistema:
+
+*   **PIN POP:** 43 unidades em estoque.
+*   **Rebuçado Tatuagem:** 98 unidades em estoque.
+[MultimodalChatSystem] Final response object: {
+  response: 'Existem os seguintes produtos registrados no sistema:\n' +
+    '\n' +
+    '*   **PIN POP:** 43 unidades em estoque.\n' +
+    '*   **Rebuçado Tatuagem:** 98 unidades em estoque.',
+  conversationId: 'conv_1629878400000_abcdef123',
+  sources: [ 'Dados do usuário' ],
+  timestamp: '2025-09-25T19:56:43.592Z'
+}
+[POST /chat] Sending response: {
+  response: 'Existem os seguintes produtos registrados no sistema:\n' +
+    '\n' +
+    '*   **PIN POP:** 43 unidades em estoque.\n' +
+    '*   **Rebuçado Tatuagem:** 98 unidades em estoque.',
+  conversationId: 'conv_1629878400000_abcdef123',
+  sources: [ 'Dados do usuário' ],
+  timestamp: '2025-09-25T19:56:43.592Z'
+}
