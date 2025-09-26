@@ -55,7 +55,7 @@ class UserRAGManager {
       console.log(`[UserRAGManager] Creating new vector store for userId: ${userId}`);
       const userData = await this.getUserData(userId);
       const documents = await this.createDocumentsFromUserData(userData);
-      console.log(`[UserRAGManager] Created ${documents.length} documents for userId: ${userId}`);
+      console.log(`[UserRAGManager] Created ${documents.length} documents Ffor userId: ${userId}`);
 
       if (documents.length === 0) {
         // Create an empty store if no documents, to avoid re-creating it every time
