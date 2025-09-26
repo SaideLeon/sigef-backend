@@ -89,7 +89,7 @@ class UserRAGManager {
       const productText = `
         Produto: ${product.name}
         ID: ${product.id}
-        Valor de Aquisição: R$ ${product.acquisitionValue}
+        Valor de Aquisição: ${product.acquisitionValue} Meticais 
         Quantidade em Estoque: ${product.quantity}
         Quantidade Inicial: ${product.initialQuantity || 'Não informado'}
         Data de Criação: ${product.createdAt.toLocaleDateString('pt-BR')}
@@ -117,8 +117,8 @@ class UserRAGManager {
         Venda: ${sale.productName}
         ID: ${sale.id}
         Quantidade Vendida: ${sale.quantitySold}
-        Valor da Venda: R$ ${sale.saleValue}
-        Lucro: R$ ${sale.profit}
+        Valor da Venda: ${sale.saleValue} Meticais 
+        Lucro: ${sale.profit} Meticais 
         ${sale.isLoss ? `Prejuízo: Sim - Motivo: ${sale.lossReason || 'Não informado'}` : 'Prejuízo: Não'}
         Data da Venda: ${sale.createdAt.toLocaleDateString('pt-BR')}
       `;
@@ -143,8 +143,8 @@ class UserRAGManager {
         Dívida: ${debt.description}
         ID: ${debt.id}
         Tipo: ${debt.type === 'receivable' ? 'A Receber' : 'A Pagar'}
-        Valor Total: R$ ${debt.amount}
-        Valor Pago: R$ ${debt.amountPaid}
+        Valor Total: ${debt.amount} Meticais 
+        Valor Pago: ${debt.amountPaid} Meticais 
         Status: ${debt.status}
         ${debt.contactName ? `Contato: ${debt.contactName}` : ''}
         ${debt.dueDate ? `Data de Vencimento: ${debt.dueDate.toLocaleDateString('pt-BR')}` : ''}
